@@ -25,6 +25,18 @@ body {
 a { color: inherit; text-decoration: none; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.skip {
+  position: absolute;
+  left: 12px;
+  top: -40px;
+  background: var(--amber);
+  color: #1b1404;
+  padding: 8px 12px;
+  border-radius: 10px;
+  z-index: 80;
+}
+.skip:focus { top: 12px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
 .app { display: grid; grid-template-columns: 232px 1fr; min-height: 100dvh; }
@@ -49,7 +61,7 @@ button { cursor: pointer; }
 .icon-btn, .avatar { width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center; border: 1px solid var(--line); background: var(--bg-2); position: relative; }
 .icon-btn i { position: absolute; top: -4px; right: -4px; background: var(--red); color: white; border-radius: 99px; font-style: normal; font-size: 10px; padding: 1px 4px; }
 .avatar { color: white; font-weight: 700; }
-main { padding: 18px 18px 108px; }
+main { padding: 18px 18px 128px; }
 .page-enter { animation: rise .42s cubic-bezier(.2,.8,.2,1); }
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 

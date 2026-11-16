@@ -1,12 +1,16 @@
 export type TaskKind = "simple" | "market_analysis" | "coordination" | "trading_decision" | "summary";
 
 export interface ProviderModel {
-  provider: "openai" | "anthropic" | "gemini" | "xai";
+  provider: string;
   tier: "cheap" | "strong";
   model: string;
   configured: boolean;
   estInputPerMTok: number;
   estOutputPerMTok: number;
+  /** Menor número = se intenta antes. Los gratuitos van por delante. */
+  priority?: number;
+  free?: boolean;
+  dailyCapUsd?: number | null;
 }
 
 export interface Choice {
@@ -89,6 +93,66 @@ export function compressContext(text: string, maxChars: number): { text: string;
   const head = Math.max(1, Math.ceil(budget * 0.7));
   const tail = Math.max(0, budget - head);
   return { text: `${text.slice(0, head)}${marker}${tail ? text.slice(-tail) : ""}`, truncated: true };
+}
+
+export type FailureKind = "rate_limit" | "quota" | "timeout" | "auth" | "server" | "network";
+
+export interface ProviderHealth {
+  provider: string;
+  cooldownUntil: number;
+  consecutiveFailures: number;
+}
+
+export function classifyProviderFailure(status: number | null, message: string): FailureKind {
+  const text = message.toLowerCase();
+  if (status === 429 || /rate limit|too many requests|resource exhausted/.test(text)) return "rate_limit";
+  if (status === 402 || status === 403 && /quota|credit|billing|insufficient/.test(text) || /quota|credit|billing|insufficient_quota|exceeded your/.test(text)) {
+    return "quota";
+  }
+  if (status === 401 || status === 403) return "auth";
+  if (status === 408 || /timeout|aborted|timed out/.test(text)) return "timeout";
+  if (status != null && status >= 500) return "server";
+  if (status == null) return /timeout|aborted|network|fetch failed|econnrefused/.test(text) ? "timeout" : "network";
+  return "server";
+}
+
+export function cooldownMs(kind: FailureKind): number {
+  if (kind === "quota") return 15 * 60_000;
+  if (kind === "rate_limit") return 60_000;
+  if (kind === "auth") return 60 * 60_000;
+  if (kind === "timeout") return 30_000;
+  if (kind === "server") return 45_000;
+  return 20_000;
+}
+
+export function planChain(input: {
+  now: number;
+  task: TaskKind;
+  models: ProviderModel[];
+  health?: ProviderHealth[];
+  spentByProvider?: Record<string, number>;
+}): ProviderModel[] {
+  const health = new Map((input.health || []).map((row) => [row.provider, row]));
+  const spent = input.spentByProvider || {};
+  const wantStrong = STRONG_TASKS.has(input.task);
+  const usable = input.models.filter((model) => {
+    if (!model.configured || !model.model) return false;
+    const state = health.get(model.provider);
+    if (state && state.cooldownUntil > input.now) return false;
+    const cap = model.dailyCapUsd;
+    if (cap != null && cap >= 0 && (spent[model.provider] || 0) >= cap) return false;
+    return true;
+  });
+  return usable.sort((a, b) => {
+    const pa = a.priority ?? 100;
+    const pb = b.priority ?? 100;
+    if (pa !== pb) return pa - pb;
+    if (a.provider === b.provider && a.tier !== b.tier) {
+      if (wantStrong) return a.tier === "strong" ? -1 : 1;
+      return a.tier === "cheap" ? -1 : 1;
+    }
+    return 0;
+  });
 }
 
 export function cacheKey(parts: string[]): string {

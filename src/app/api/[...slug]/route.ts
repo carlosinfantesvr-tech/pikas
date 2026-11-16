@@ -213,7 +213,7 @@ async function handle(req: Request, slug: string[]): Promise<Response> {
       account: view,
       quotes: listed,
       unread: Number(unread[0]?.count || 0),
-      ai: { configured: aiConfigured(), providers: providerInfos() },
+      ai: { configured: aiConfigured(), providers: user.role === "admin" ? providerInfos() : [] },
       google: { configured: googleOAuthConfigured({ clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET }) },
       settings: settings[0] || null,
       simulation: true,
@@ -405,15 +405,14 @@ async function handle(req: Request, slug: string[]): Promise<Response> {
       ],
     });
     if (!result.ok) return fail(result.error, result.code, result.code === "budget" ? 429 : 502);
-    return json({ ...result, at: new Date().toISOString(), symbol: input.data.symbol, disclaimer: "Educativo. No es asesoramiento financiero." });
+    return json({ content: result.content, speaker: "PIKAS AI", at: new Date().toISOString(), symbol: input.data.symbol, disclaimer: "Educativo. No es asesoramiento financiero." });
   }
 
   if (path === "pikas/status" && method === "GET") {
     return json({
       configured: aiConfigured(),
-      providers: providerInfos().map((provider) => ({ id: provider.id, label: provider.label, configured: provider.configured })),
-      keys: ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY", "XAI_API_KEY"],
-      message: aiConfigured() ? "PIKAS AI puede responder con un proveedor configurado." : "PIKAS AI no configurado",
+      name: "PIKAS AI",
+      message: aiConfigured() ? "PIKAS AI está listo." : "PIKAS AI no configurado",
     });
   }
 
@@ -457,9 +456,9 @@ async function handle(req: Request, slug: string[]): Promise<Response> {
           } else {
             await db.query(
               "insert into messages (id, conversation_id, role, content, meta, created_at) values ($1,$2,'assistant',$3,$4,$5)",
-              [crypto.randomUUID(), conversationId, result.content, JSON.stringify({ provider: result.provider, model: result.model, estimatedCost: result.estimatedCost, cached: result.cached }), Date.now()],
+              [crypto.randomUUID(), conversationId, result.content, JSON.stringify({ speaker: "PIKAS AI" }), Date.now()],
             );
-            send({ done: true, provider: result.provider, model: result.model, estimatedCost: result.estimatedCost, at: new Date().toISOString() });
+            send({ done: true, speaker: "PIKAS AI", at: new Date().toISOString() });
           }
         } catch (error) {
           send({ error: error instanceof Error ? error.message : "Error de PIKAS AI", code: "provider_error" });
@@ -525,7 +524,10 @@ async function handle(req: Request, slug: string[]): Promise<Response> {
     return json({ ok: true });
   }
 
-  if (path === "router" && method === "GET") return json(await routerView(db));
+  if (path === "router" && method === "GET") {
+    if (user.role !== "admin") return json({ configured: aiConfigured(), speaker: "PIKAS AI", admin: false });
+    return json({ ...(await routerView(db)), admin: true });
+  }
   if (path === "router/budget" && method === "POST") {
     if (user.role !== "admin") return fail("Solo administración.", "FORBIDDEN", 403);
     const input = z.object({ daily: z.string(), monthly: z.string() }).safeParse(await req.json().catch(() => null));

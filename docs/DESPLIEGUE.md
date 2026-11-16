@@ -84,16 +84,25 @@ El flujo real contra Google no se pudo probar en el desarrollo: no se creó ning
 
 ## 6. Activar PIKAS AI
 
-Hace falta **una** de estas claves. Sin ninguna, el chat muestra **PIKAS AI no configurado** y no redacta un análisis falso.
+El chat se llama PIKAS AI. Tiene una voz fija y guarda una memoria breve de lo que el usuario dice. No dice qué motor respondió. Sin ninguna clave, la pantalla dice **PIKAS AI no configurado** y no redacta un análisis.
 
-- `OPENAI_API_KEY` (OpenAI)
-- `ANTHROPIC_API_KEY` (Anthropic)
-- `GEMINI_API_KEY` (Google AI Studio)
-- `XAI_API_KEY` (xAI)
+El router prueba una cadena. Si uno responde 429, se queda sin crédito, falla o tarda más de 8 segundos, pasa al siguiente y lo deja en pausa un rato. El panel Admin → Router muestra cuáles están configurados, si están en pausa y el uso estimado. Esa pantalla no la ve un usuario normal.
 
-Los nombres de modelo tienen valor por defecto en `.env.example`. El router elige uno barato o uno más capaz según la tarea, guarda tokens y un coste **estimado**, y corta las llamadas si se pasa `AI_DAILY_BUDGET_USD` o `AI_MONTHLY_BUDGET_USD`. Esos límites son internos: no sustituyen el tope de gasto del proveedor. Pon también el límite en la consola de OpenAI, Anthropic, Google o xAI.
+Orden por defecto, de primero a último. Los de pago no se llaman si `AI_ALLOW_PAID` no es `true`.
 
-Una suscripción de chat no equivale a una clave de API.
+Estas notas salen de la documentación pública leída el 16 de noviembre de 2026. No llamé a ninguna API: aquí no hay claves. Si un identificador de modelo deja de existir, cámbialo en la variable y el router saltará al siguiente cuando reciba un error.
+
+1. **Google Gemini** — capa gratuita en AI Studio. Entra en [aistudio.google.com](https://aistudio.google.com), crea una clave de API y ponla en `GEMINI_API_KEY`. Google dice que Flash tiene precio cero en el tier gratuito y que el cupo real se ve en AI Studio, no está garantizado. Por defecto se usan `gemini-3.6-flash` y `gemini-3.8-flash`. Si AI Studio muestra otro id, cámbialo.
+2. **Groq** — plan Free sin tarjeta, con tope por minuto y por día. Entra en [console.groq.com](https://console.groq.com), crea una clave y ponla en `GROQ_API_KEY`. La documentación de límites del 16 nov 2026 cita `openai/gpt-oss-20b` y `openai/gpt-oss-120b` (30 peticiones/minuto, 1.000/día en esos modelos). Un 429 pasa al siguiente.
+3. **OpenRouter** — modelos cuyo id acaba en `:free`, o el router `openrouter/free`. Cuenta en [openrouter.ai](https://openrouter.ai), clave en `OPENROUTER_API_KEY`. Sin créditos comprados, la propia documentación de límites habla de unas 20 peticiones por minuto y 50 al día. No pongas un modelo de pago en el fallback: se cobraría.
+4. **Cloudflare Workers AI** — asignación gratuita de neuronas. En el panel de Cloudflare crea un token con permiso de Workers AI y copia el Account ID. Variables: `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_API_TOKEN`. El modelo por defecto es `@cf/meta/llama-3.1-8b-instruct`. Confirma el id en el catálogo de Workers AI.
+5. **Hugging Face** — token en [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens), variable `HF_TOKEN`. La inferencia gratuita tiene cola y límites. El modelo por defecto puede no estar despierto; si falla, el router sigue.
+6. **Mistral** — clave en [console.mistral.ai](https://console.mistral.ai), variable `MISTRAL_API_KEY`. El plan Experiment ha cambiado varias veces. Confirma en la consola si tu clave es gratuita antes de dejarla activa.
+7. **Ollama** — en tu ordenador, sin clave, si el proceso de PIKAS puede abrir `OLLAMA_BASE_URL` (por ejemplo `http://127.0.0.1:11434`). En Vercel esa dirección es la del propio servidor, no tu portátil, así que no la pongas ahí salvo que apuntes a una URL alcanzable.
+8. **Cerebras** — no es un plan gratis permanente. La documentación del 16 nov 2026 dice que hay 5 USD de prueba al añadir una tarjeta, y que caducan a los 30 días. Solo pon `CEREBRAS_API_KEY` si aceptas eso.
+9. **OpenAI, Anthropic y xAI** — de pago. Hace falta la clave y `AI_ALLOW_PAID=true`. El tope interno `AI_PAID_DAILY_BUDGET_USD` sale en 0, así que además tienes que subirlo. Pon también un límite en la consola del proveedor. Una suscripción de chat no es una clave de API.
+
+`AI_DAILY_BUDGET_USD` y `AI_MONTHLY_BUDGET_USD` siguen siendo estimaciones internas. Los motores marcados como gratuitos cuentan 0.
 
 ## 7. Precios de mercado
 

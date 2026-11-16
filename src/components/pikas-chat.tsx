@@ -23,19 +23,16 @@ export function PikasMark({ live = false }: { live?: boolean }) {
 
 export function PikasChat({ compact = false }: { compact?: boolean }) {
   const [configured, setConfigured] = useState<boolean | null>(null);
-  const [providers, setProviders] = useState<Array<{ id: string; label: string; configured: boolean }>>([]);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [text, setText] = useState("");
   const [streaming, setStreaming] = useState("");
   const [busy, setBusy] = useState(false);
-  const [meta, setMeta] = useState<string | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    api<{ configured: boolean; providers: Array<{ id: string; label: string; configured: boolean }> }>("/api/pikas/status")
+    api<{ configured: boolean }>("/api/pikas/status")
       .then((status) => {
         setConfigured(status.configured);
-        setProviders(status.providers);
         if (status.configured) return api<{ messages: Msg[] }>("/api/pikas/messages");
         return { messages: [] as Msg[] };
       })
@@ -52,7 +49,6 @@ export function PikasChat({ compact = false }: { compact?: boolean }) {
     if (!content || busy || configured === false) return;
     setText("");
     setBusy(true);
-    setMeta(null);
     setMessages((current) => [...current, { role: "user", content }]);
     setStreaming("");
     try {
@@ -83,16 +79,15 @@ export function PikasChat({ compact = false }: { compact?: boolean }) {
         for (const chunk of chunks) {
           const line = chunk.split("\n").find((item) => item.startsWith("data:"));
           if (!line) continue;
-          const payload = JSON.parse(line.slice(5)) as { delta?: string; error?: string; done?: boolean; provider?: string; model?: string };
+          const payload = JSON.parse(line.slice(5)) as { delta?: string; error?: string; done?: boolean };
           if (payload.delta) {
             full += payload.delta;
             setStreaming(full);
           }
           if (payload.error) throw new Error(payload.error);
-          if (payload.done) setMeta(`${payload.provider} · ${payload.model}`);
         }
       }
-      setMessages((current) => [...current, { role: "assistant", content: full, meta }]);
+      setMessages((current) => [...current, { role: "assistant", content: full }]);
       setStreaming("");
     } catch (error) {
       setMessages((current) => [...current, { role: "assistant", content: error instanceof Error ? error.message : "Error", meta: "error" }]);
@@ -118,13 +113,7 @@ export function PikasChat({ compact = false }: { compact?: boolean }) {
         </header>
         <div className="unconfigured-body">
           <strong>PIKAS AI no configurado</strong>
-          <p>No hay ninguna clave de proveedor, así que no voy a inventar un análisis ni una respuesta. Cuando añadas una clave, este chat podrá mirar tu simulación, Market Battle, AI Arena y las alertas a través del router.</p>
-          <ul>
-            {providers.map((provider) => (
-              <li key={provider.id}><span>{provider.label}</span><em>no configurado</em></li>
-            ))}
-          </ul>
-          <p className="fine">Claves que lo activan: OPENAI_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY o XAI_API_KEY. Basta una.</p>
+          <p>Todavía no hay un motor conectado, así que no invento un análisis. Cuando un administrador lo active, hablarás solo con PIKAS AI: una voz, con memoria de lo que cuentes y con los datos de tu simulación.</p>
         </div>
       </section>
     );
@@ -145,7 +134,7 @@ export function PikasChat({ compact = false }: { compact?: boolean }) {
         {messages.map((message, index) => (
           <article key={`${message.created_at || index}-${message.role}`} className={`bubble bubble-${message.role}`}>
             <p>{message.content}</p>
-            {message.role === "assistant" && message.meta && message.meta !== "error" ? <small>{message.meta}</small> : null}
+            {message.role === "assistant" ? <small>PIKAS AI</small> : null}
           </article>
         ))}
         {streaming ? <article className="bubble bubble-assistant streaming"><p>{streaming}<span className="caret" /></p></article> : null}
@@ -161,7 +150,7 @@ export function PikasChat({ compact = false }: { compact?: boolean }) {
         <textarea id="pikas-input" value={text} rows={compact ? 2 : 3} placeholder="¿Qué está pasando con mi simulación?" onChange={(event) => setText(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void send(); } }} />
         <button className="btn btn-primary" type="submit" disabled={busy || !text.trim()}>{busy ? "Pensando" : "Enviar"}</button>
       </form>
-      {meta ? <p className="fine">Último modelo: {meta}. Coste estimado, no es una factura.</p> : null}
+      <p className="fine">Una sola voz. Educativo, no es asesoramiento financiero.</p>
     </section>
   );
 }

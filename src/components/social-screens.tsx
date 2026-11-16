@@ -75,7 +75,7 @@ export function ArenaScreen() {
       <h2>Decisiones</h2>
       {(board?.decisions || []).map((decision) => (
         <article className="card" key={String(decision.id)}>
-          <strong>{String(decision.action)}</strong> · {String(decision.provider || "")} {decision.model ? `· ${decision.model}` : ""}
+          <strong>{String(decision.action)}</strong> · {decision.provider === "rules" ? "Regla técnica" : "PIKAS AI"}
           <p>{String(decision.rationale || "")}</p>
           <p className="fine">{String(decision.execution_note || "")} {Number(decision.self_reported) ? "· confianza autodeclarada, no calibrada" : ""}</p>
         </article>
@@ -116,7 +116,7 @@ export function AdvisorScreen() {
         }}>
           <textarea value={question} onChange={(e) => setQuestion(e.target.value)} rows={3} />
           <button className="btn btn-primary" type="submit">Preguntar al modelo</button>
-          {answer ? <div><p>{String(answer.content)}</p><p className="fine">{String(answer.provider)} · {String(answer.model)} · {String(answer.disclaimer)}</p></div> : null}
+          {answer ? <div><p>{String(answer.content)}</p><p className="fine">PIKAS AI · {String(answer.disclaimer || "")}</p></div> : null}
         </form>
       ) : <p className="panel">El chat del advisor no está configurado. Arriba solo ves cálculos locales.</p>}
     </div>

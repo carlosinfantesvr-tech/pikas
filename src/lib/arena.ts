@@ -44,6 +44,7 @@ export async function runArena(
   );
   const agents = await db.query<Record<string, unknown>>("select * from agents");
   const decisions = [];
+  let pikasAsked = false;
   for (const agent of agents) {
     if (agent.kind === "rules") {
       const accountId = await agentAccount(db, String(agent.id), String(agent.name));
@@ -98,20 +99,16 @@ export async function runArena(
       decisions.push({ agent: agent.slug, ...row, configured: true });
       continue;
     }
-    const provider = String(agent.provider || "");
-    const configured = aiConfigured() && Boolean(process.env[`${provider === "xai" ? "XAI" : provider.toUpperCase()}_API_KEY`]);
-    if (!configured) {
+    if (pikasAsked) continue;
+    pikasAsked = true;
+    if (!aiConfigured()) {
       const id = crypto.randomUUID();
       await db.query(
         `insert into agent_decisions (id, run_id, agent_id, symbol, price, action, rationale, provider, model, created_at, executed, execution_note, self_reported)
-         values ($1,$2,$3,$4,$5,'unavailable',$6,$7,null,$8,0,$9,0)`,
-        [id, runId, agent.id, input.symbol, input.quote.price, "Proveedor no configurado. No hay decisión del modelo.", provider, now, "No configurado"],
+         values ($1,$2,$3,$4,$5,'unavailable',$6,'pikas','PIKAS AI',$7,0,$8,0)`,
+        [id, runId, agent.id, input.symbol, input.quote.price, "PIKAS AI no configurado. No hay decisión.", now, "Sin motor"],
       );
-      decisions.push({ agent: agent.slug, id, action: "unavailable", configured: false, rationale: "Proveedor no configurado." });
-      continue;
-    }
-    if (input.mode === "autonomous") {
-      decisions.push({ agent: agent.slug, action: "skipped", configured: true, rationale: "El modo autónomo de modelos de pago no se lanza en ráfaga. Usa competición o asistido." });
+      decisions.push({ agent: "pikas", id, action: "unavailable", configured: false, rationale: "PIKAS AI no configurado." });
       continue;
     }
     const result = await runRoutedChat({
@@ -119,14 +116,14 @@ export async function runArena(
       userId,
       task: "trading_decision",
       messages: [
-        { role: "system", content: "Responde solo JSON con action (hold|open_long|open_short|close), confidence (0-1, autodeclarada), risk, tp, sl, rationale. Simulación educativa." },
+        { role: "system", content: "Eres PIKAS AI. Responde solo JSON con action (hold|open_long|open_short|close), confidence (0-1, autodeclarada, no es una probabilidad), risk, tp, sl, rationale. Simulación educativa. No nombres otros motores." },
         { role: "user", content: JSON.stringify(context) },
       ],
     });
     const id = crypto.randomUUID();
     await db.query(
       `insert into agent_decisions (id, run_id, agent_id, symbol, price, action, rationale, provider, model, created_at, executed, execution_note, self_reported)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,0,$11,1)`,
+       values ($1,$2,$3,$4,$5,$6,$7,'pikas','PIKAS AI',$8,0,$9,1)`,
       [
         id,
         runId,
@@ -135,13 +132,11 @@ export async function runArena(
         input.quote.price,
         result.ok ? "proposed" : "error",
         result.ok ? result.content : result.error,
-        result.ok ? result.provider : provider,
-        result.ok ? result.model : null,
         now,
-        result.ok ? "Propuesta guardada. La confianza es la que declara el modelo, no una probabilidad calibrada." : result.error,
+        result.ok ? "Propuesta de PIKAS AI. La confianza declarada no es una probabilidad calibrada." : result.error,
       ],
     );
-    decisions.push({ agent: agent.slug, id, configured: true, ok: result.ok });
+    decisions.push({ agent: "pikas", id, configured: true, ok: result.ok });
   }
   return { ok: true as const, runId, decisions, context };
 }

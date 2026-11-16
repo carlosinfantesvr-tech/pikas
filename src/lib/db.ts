@@ -1,4 +1,4 @@
-import { SCHEMA } from "./schema";
+import { MIGRATION_002, SCHEMA } from "./schema";
 
 export interface Db {
   query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]>;
@@ -80,12 +80,15 @@ async function createNeonDb(url: string): Promise<Db> {
 
 export async function migrate(db: Db): Promise<void> {
   await db.exec("create table if not exists schema_migrations (id text primary key, applied_at bigint not null)");
-  const applied = await db.query<{ id: string }>("select id from schema_migrations");
-  if (applied.some((row) => row.id === "001")) return;
-  for (const statement of SCHEMA) {
-    await db.exec(statement);
+  const applied = new Set((await db.query<{ id: string }>("select id from schema_migrations")).map((row) => row.id));
+  if (!applied.has("001")) {
+    for (const statement of SCHEMA) await db.exec(statement);
+    await db.query("insert into schema_migrations (id, applied_at) values ($1, $2)", ["001", Date.now()]);
   }
-  await db.query("insert into schema_migrations (id, applied_at) values ($1, $2)", ["001", Date.now()]);
+  if (!applied.has("002")) {
+    for (const statement of MIGRATION_002) await db.exec(statement);
+    await db.query("insert into schema_migrations (id, applied_at) values ($1, $2)", ["002", Date.now()]);
+  }
 }
 
 async function ensureBaseline(db: Db): Promise<void> {

@@ -1,16 +1,18 @@
 # AI Router y PIKAS AI
 
-Un solo módulo elige proveedor, recorta el contexto, estima el coste y registra cada llamada. Los módulos no guardan clientes sueltos.
+PIKAS AI es una sola voz. El usuario no ve qué motor respondió. Por debajo hay una cadena: si uno se queda sin cupo, responde 429, se queda sin crédito, falla o tarda más de 8 segundos, el router pasa al siguiente y deja al primero en pausa (1 minuto por límite, 15 por cupo, 30 segundos por timeout, 1 hora si la clave es inválida).
 
-## Selección
+La pausa y el último error se ven solo en Admin → Router. El chat guarda una memoria corta de preferencias que el propio usuario deja, en `ai_memory`, y la vuelve a poner en el contexto. No es un modelo entrenado desde cero.
 
-- Pregunta simple o resumen: modelo barato configurado.
-- Análisis, coordinación o decisión de trading: modelo potente si existe; si no, el barato, y el motivo queda escrito.
-- Preferencia: `AI_PREFERRED_PROVIDER`.
-- Si la llamada falla, se prueba el siguiente proveedor configurado.
-- Si el gasto estimado del día o del mes llega al tope, no hay más llamadas.
+## Orden
 
-Sin ninguna clave el resultado es `not_configured`. La interfaz de PIKAS AI muestra exactamente «PIKAS AI no configurado». No hay una respuesta local disfrazada de modelo.
+Primero los que pueden costar cero: Ollama (si hay URL), Gemini, Groq, OpenRouter free, Cloudflare Workers AI, Hugging Face y Mistral. Cerebras va después porque su prueba pide tarjeta. OpenAI, Anthropic y xAI solo si `AI_ALLOW_PAID=true` y el tope de pago es mayor que cero.
+
+En una tarea de análisis, dentro del mismo motor se prueba antes la variante fuerte. Si esa falla, no se insiste con la otra variante del mismo motor en la misma pregunta.
+
+## Lo que ve el usuario
+
+Sin claves: «PIKAS AI no configurado». Con claves: la respuesta, firmada como PIKAS AI. Si el texto nombra a otro motor, se sustituye antes de mostrarlo.
 
 ## Claves que lo encienden
 

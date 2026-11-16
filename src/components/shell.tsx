@@ -120,6 +120,7 @@ function Frame({ children }: { children: React.ReactNode }) {
     <MotionProvider off={Boolean(data?.settings?.reduce_motion)}>
       <Ctx.Provider value={{ data, loading, refresh }}>
         <div className="app">
+          <a className="skip" href="#contenido">Saltar al contenido</a>
           <aside className="side">
             <Link href="/" className="brand">
               <PikasMark live={live} />
@@ -145,7 +146,7 @@ function Frame({ children }: { children: React.ReactNode }) {
               <Link href="/alertas" className="icon-btn" aria-label="Alertas">{data?.unread ? <i>{data.unread}</i> : null}●</Link>
               <Link href="/perfil" className="avatar" style={{ background: `hsl(${data?.user.avatarHue ?? 200} 70% 45%)` }}>{data?.user.username.slice(0, 1).toUpperCase()}</Link>
             </header>
-            <main className="page-enter" key={pathname}>{children}</main>
+            <main id="contenido" className="page-enter" key={pathname}>{children}</main>
           </div>
           <nav className="tabbar">
             <Link href="/" className={pathname === "/" ? "active" : ""}>Inicio</Link>

@@ -1,3 +1,19 @@
+export const MIGRATION_002: string[] = [
+  `create table if not exists ai_provider_state (
+    provider text primary key,
+    cooldown_until bigint not null default 0,
+    consecutive_failures integer not null default 0,
+    last_error text,
+    last_ok_at bigint,
+    updated_at bigint not null
+  )`,
+  `create table if not exists ai_memory (
+    user_id text primary key,
+    summary text not null,
+    updated_at bigint not null
+  )`,
+];
+
 export const SCHEMA: string[] = [
   `create table if not exists users (
     id text primary key,

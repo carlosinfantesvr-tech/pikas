@@ -136,26 +136,41 @@ export function RouterScreen() {
   const [daily, setDaily] = useState("1");
   const [monthly, setMonthly] = useState("10");
   useEffect(() => { api<Record<string, unknown>>("/api/router").then(setView).catch(() => undefined); }, []);
+  if (view && view.admin === false) {
+    return (
+      <div className="grid">
+        <h1>PIKAS AI</h1>
+        <p>{view.configured ? "PIKAS AI está activo. El detalle de los motores es solo de administración." : "PIKAS AI no configurado."}</p>
+      </div>
+    );
+  }
   const providers = (view?.providers as Array<Record<string, unknown>>) || [];
   const spent = (view?.spent as { today: number; month: number; daily: number; monthly: number }) || null;
   return (
     <div className="grid">
-      <div><p className="kicker">AI Router</p><h1>Un solo sitio para los modelos</h1><p className="muted">{String(view?.pricesNote || "")}</p></div>
+      <div>
+        <p className="kicker">Administración</p>
+        <h1>Motores de PIKAS AI</h1>
+        <p className="muted">{String(view?.pricesNote || "")} El chat nunca dice cuál respondió.</p>
+      </div>
       <div className="cards">
         {providers.map((provider) => (
           <article className="card" key={String(provider.id)}>
             <h3>{String(provider.label)}</h3>
-            <p>{provider.configured ? "Configurado" : "No configurado"}</p>
-            <p className="fine">{String(provider.cheap)} / {String(provider.strong)}</p>
+            <p>{provider.configured ? (provider.healthy ? "Configurado y disponible" : "En pausa") : "No configurado"}</p>
+            <p className="fine">{provider.free ? "Prioridad gratuita" : "De pago, apagado salvo AI_ALLOW_PAID"} · prioridad {String(provider.priority)}</p>
+            <p className="fine">{String(provider.cheap)}{provider.strong !== provider.cheap ? ` / ${String(provider.strong)}` : ""}</p>
+            <p className="fine">Llamadas recientes {String(provider.recentCalls || 0)} · errores {String(provider.recentErrors || 0)} · estimado {Number(provider.estimatedCost || 0).toFixed(4)} USD</p>
+            {provider.lastError ? <p className="status-bad">{String(provider.lastError)}</p> : null}
           </article>
         ))}
       </div>
       {spent ? <p>Estimado hoy {spent.today.toFixed(4)} USD de {spent.daily}. Mes {spent.month.toFixed(4)} de {spent.monthly}.</p> : null}
       {data?.user.role === "admin" ? (
         <form className="row" onSubmit={async (event) => { event.preventDefault(); await api("/api/router/budget", { method: "POST", body: JSON.stringify({ daily, monthly }) }); location.reload(); }}>
-          <input value={daily} onChange={(e) => setDaily(e.target.value)} />
-          <input value={monthly} onChange={(e) => setMonthly(e.target.value)} />
-          <button className="btn" type="submit">Límite estimado</button>
+          <label className="field">Tope diario USD<input value={daily} onChange={(e) => setDaily(e.target.value)} /></label>
+          <label className="field">Tope mensual USD<input value={monthly} onChange={(e) => setMonthly(e.target.value)} /></label>
+          <button className="btn" type="submit">Guardar topes</button>
         </form>
       ) : null}
     </div>
