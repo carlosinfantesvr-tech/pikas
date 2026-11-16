@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "./api";
 import { useApp } from "./shell";
-import { AnimatedNumber, FlipList, Skeleton, useToast } from "./ui";
+import { AnimatedNumber, FlipList, ScreenSkeleton, Skeleton, useToast } from "./ui";
 import { money, pct, when } from "@/lib/format";
 import { ASSETS } from "@/lib/symbols";
 import { PikasChat } from "./pikas-chat";
@@ -30,7 +30,7 @@ export function BattleScreen() {
           <button className="btn btn-primary" type="submit">Crear ronda</button>
         </form>
       ) : null}
-      {battles === null ? <div className="grid"><Skeleton className="sk-boot" /><Skeleton className="sk-boot" /></div> : null}
+      {battles === null ? <ScreenSkeleton /> : null}
       {error ? <p className="status-bad" role="alert">{error}</p> : null}
       {(battles || []).map((battle) => (
         <article className="card" key={String(battle.id)}>
@@ -109,14 +109,15 @@ export function AdvisorScreen() {
       <div className="tabs" role="tablist" aria-label="Activo del análisis">{ASSETS.map((asset) => <button key={asset.symbol} role="tab" aria-selected={symbol === asset.symbol} className={symbol === asset.symbol ? "chip on" : "chip"} type="button" onClick={() => setSymbol(asset.symbol)}>{asset.symbol}</button>)}</div>
       <article className="panel">
         <p className="fine">{String(data?.label || "")} Fuente: {String(data?.source || "n/d")}</p>
-        {error || data?.error ? <p className="status-bad">{error || String(data?.error)}</p> : null}
+        {!data && !error ? <ScreenSkeleton /> : null}
+        {error || data?.error ? <p className="status-bad" role="alert">{error || String(data?.error)}</p> : null}
         {latest ? (
           <div className="cards">
             {Object.entries(latest).filter(([key]) => key !== "ts").map(([key, value]) => (
               <div className="card" key={key}><span className="kicker">{key}</span><b>{value == null ? "n/d" : Number(value).toFixed(2)}</b></div>
             ))}
           </div>
-        ) : <p>Sin velas suficientes para los indicadores.</p>}
+        ) : data ? <p className="empty">Sin velas suficientes para los indicadores.</p> : null}
       </article>
       {data?.ai ? (
         <form className="panel grid" onSubmit={async (event) => {
@@ -145,25 +146,40 @@ export function PikasScreen() {
 export function RankingsScreen() {
   const [windowName, setWindowName] = useState("all");
   const [data, setData] = useState<{ paper: Array<Record<string, unknown>>; battle: Array<Record<string, unknown>>; arena: Array<Record<string, unknown>>; note: string } | null>(null);
-  useEffect(() => { api<NonNullable<typeof data>>(`/api/rankings?window=${windowName}`).then(setData).catch(() => undefined); }, [windowName]);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    setData(null);
+    api<NonNullable<typeof data>>(`/api/rankings?window=${windowName}`).then((next) => { setData(next); setError(""); }).catch((err) => setError(err instanceof Error ? err.message : "No se pudo calcular el ranking"));
+  }, [windowName]);
   const paper = (data?.paper || []).map((row) => ({ ...row, id: String(row.accountId) }));
+  const battle = (data?.battle || []).map((row) => ({ ...row, id: String(row.userId) }));
   return (
     <div className="grid">
       <div><p className="kicker">Rankings</p><h1>Clasificación</h1><p className="muted">{data?.note}</p></div>
-      <div className="tabs">{[["all", "Histórico"], ["day", "Día"], ["week", "Semana"], ["month", "Mes"]].map(([id, label]) => <button key={id} className={windowName === id ? "chip on" : "chip"} type="button" onClick={() => setWindowName(id)}>{label}</button>)}</div>
+      <div className="tabs" role="tablist" aria-label="Periodo">{[["all", "Histórico"], ["day", "Día"], ["week", "Semana"], ["month", "Mes"]].map(([id, label]) => <button key={id} role="tab" aria-selected={windowName === id} className={windowName === id ? "chip on" : "chip"} type="button" onClick={() => setWindowName(id)}>{label}</button>)}</div>
+      {error ? <p className="status-bad" role="alert">{error}</p> : null}
+      {!data && !error ? <ScreenSkeleton /> : null}
       <section>
         <h2>Paper trading</h2>
+        {paper.length === 0 && data ? <p className="empty">Todavía no hay cuentas para ordenar.</p> : null}
         <FlipList items={paper} render={(row) => (
           <div className="rank card">
             <b>#{String(row.rank)}</b>
             <div><strong>{String((row.user as { username?: string } | null)?.username || "usuario")}</strong><div className="fine">inicial {money(String(row.initialBalance))} · {String(row.valuation)} · {String(row.trades)} ops</div></div>
-            <div>{row.returnPct == null ? "—" : pct(Number(row.returnPct) * 100)}</div>
+            <div>{row.returnPct == null ? "—" : <AnimatedNumber value={Number(row.returnPct) * 100} format={(n) => pct(n)} />}</div>
           </div>
         )} />
       </section>
       <section>
         <h2>Market Battle</h2>
-        {(data?.battle || []).map((row) => <div className="rank card" key={String(row.userId)}><b>#{String(row.rank)}</b><span>{String((row.user as { username?: string } | null)?.username)}</span><span>{String(row.points)} pts</span></div>)}
+        {battle.length === 0 && data ? <p className="empty">Sin puntos en este periodo.</p> : null}
+        <FlipList items={battle} render={(row) => (
+          <div className="rank card">
+            <b>#{String(row.rank)}</b>
+            <span>{String((row.user as { username?: string } | null)?.username || "usuario")}</span>
+            <span><AnimatedNumber value={Number(row.points)} format={(n) => `${Math.round(n)} pts`} /></span>
+          </div>
+        )} />
       </section>
       <section>
         <h2>Arena</h2>

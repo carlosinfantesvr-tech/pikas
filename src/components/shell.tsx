@@ -77,6 +77,8 @@ function Frame({ children }: { children: React.ReactNode }) {
   const [more, setMore] = useState(false);
   const [chat, setChat] = useState(false);
   const [setup, setSetup] = useState<string>("100");
+  const [install, setInstall] = useState<null | "ios" | "native">(null);
+  const [promptEvent, setPromptEvent] = useState<{ prompt: () => Promise<void> } | null>(null);
   const auth = pathname === "/login" || pathname === "/registro" || pathname.startsWith("/recuperar");
 
   async function refresh() {
@@ -102,6 +104,16 @@ function Frame({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+    if (window.matchMedia("(display-mode: standalone)").matches || localStorage.getItem("pikas-install-hide") === "1") return;
+    const onPrompt = (event: Event) => {
+      event.preventDefault();
+      setPromptEvent(event as Event & { prompt: () => Promise<void> });
+      setInstall("native");
+    };
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    const ios = /iphone|ipad/i.test(navigator.userAgent);
+    if (ios) setInstall("ios");
+    return () => window.removeEventListener("beforeinstallprompt", onPrompt);
   }, []);
 
   if (auth) {
@@ -137,7 +149,7 @@ function Frame({ children }: { children: React.ReactNode }) {
           <div className="workspace">
             <header className="topbar">
               <div className="brand mobile-brand"><PikasMark live={live} /><b>PIKAS</b></div>
-              <div className={`conn ${live ? "live" : "down"}`}>{live ? "Precios en vivo" : "Sin precio ejecutable"}</div>
+              <div className={`conn ${live ? "live" : "down"}`} role="status" aria-label={live ? "Precios en vivo" : "Sin precio ejecutable"}><span className="conn-long">{live ? "Precios en vivo" : "Sin precio ejecutable"}</span></div>
               <div className="equity-pill">
                 <span>Patrimonio</span>
                 <strong><AnimatedNumber value={equity} format={(n) => `${money(n)} USDT`} /></strong>
@@ -148,7 +160,16 @@ function Frame({ children }: { children: React.ReactNode }) {
             </header>
             <main id="contenido" className="page-enter" key={pathname}>{children}</main>
           </div>
-          <nav className="tabbar">
+          {install ? (
+            <div className="install" role="region" aria-label="Instalar PIKAS">
+              <p>{install === "ios" ? "En iPhone: pulsa Compartir y luego Añadir a pantalla de inicio." : "PIKAS se puede instalar como aplicación."}</p>
+              <div className="row">
+                {install === "native" && promptEvent ? <button className="btn btn-primary" type="button" onClick={() => { void promptEvent.prompt(); setInstall(null); }}>Instalar</button> : null}
+                <button className="btn" type="button" onClick={() => { localStorage.setItem("pikas-install-hide", "1"); setInstall(null); }}>Ahora no</button>
+              </div>
+            </div>
+          ) : null}
+          <nav className="tabbar" aria-label="Navegación principal">
             <Link href="/" className={pathname === "/" ? "active" : ""}>Inicio</Link>
             <Link href="/trading" className={pathname === "/trading" ? "active" : ""}>Trading</Link>
             <Link href="/battle" className={pathname === "/battle" ? "active" : ""}>Battle</Link>

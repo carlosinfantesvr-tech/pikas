@@ -56,6 +56,11 @@ export async function syncArenaAgents(db: Db): Promise<void> {
       [crypto.randomUUID(), "Reglas EMA/RSI sobre velas reales. No es un modelo de lenguaje."],
     );
   }
+  const keep = new Set(["baseline", ...arenaSlots().map((slot) => slot.slug)]);
+  const stale = await db.query<{ slug: string; account_id: string | null }>("select slug, account_id from agents");
+  for (const row of stale) {
+    if (!keep.has(row.slug) && !row.account_id) await db.query("delete from agents where slug = $1", [row.slug]);
+  }
   for (const slot of arenaSlots()) {
     const found = await db.query<{ id: string }>("select id from agents where slug = $1", [slot.slug]);
     if (!found.length) {

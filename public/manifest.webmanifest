@@ -2,6 +2,7 @@
   "name": "PIKAS",
   "short_name": "PIKAS",
   "description": "Simulación educativa de trading. Sin dinero real.",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -73,6 +73,16 @@ export function Skeleton({ className = "" }: { className?: string }) {
   return <span className={`skeleton ${className}`} aria-hidden />;
 }
 
+export function ScreenSkeleton() {
+  return (
+    <div className="grid" aria-busy="true" aria-label="Cargando">
+      <Skeleton className="sk-line" />
+      <Skeleton className="sk-boot" />
+      <Skeleton className="sk-boot" />
+    </div>
+  );
+}
+
 export function FlipList({ items, render }: { items: Array<{ id: string } & Record<string, unknown>>; render: (item: { id: string } & Record<string, unknown>, index: number) => React.ReactNode }) {
   const reduced = useReduced();
   const refs = useRef(new Map<string, HTMLDivElement>());

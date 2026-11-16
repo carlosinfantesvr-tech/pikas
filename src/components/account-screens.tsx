@@ -4,24 +4,32 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "./api";
 import { useApp } from "./shell";
-import { useToast } from "./ui";
+import { AnimatedNumber, ScreenSkeleton, useToast } from "./ui";
 import { money, pct, signed, when } from "@/lib/format";
+import { ASSET_SYMBOLS } from "@/lib/symbols";
 
 export function HistoryScreen() {
-  const [trades, setTrades] = useState<Array<Record<string, unknown>>>([]);
+  const [trades, setTrades] = useState<Array<Record<string, unknown>> | null>(null);
   const [symbol, setSymbol] = useState("");
+  const [error, setError] = useState("");
   useEffect(() => {
-    api<{ trades: Array<Record<string, unknown>> }>(`/api/trading/history${symbol ? `?symbol=${symbol}` : ""}`).then((res) => setTrades(res.trades)).catch(() => undefined);
+    setTrades(null);
+    api<{ trades: Array<Record<string, unknown>> }>(`/api/trading/history${symbol ? `?symbol=${symbol}` : ""}`)
+      .then((res) => { setTrades(res.trades); setError(""); })
+      .catch((err) => setError(err instanceof Error ? err.message : "No se pudo leer el historial"));
   }, [symbol]);
   return (
     <div className="grid">
       <h1>Historial</h1>
-      <div className="tabs"><button className={!symbol ? "chip on" : "chip"} type="button" onClick={() => setSymbol("")}>Todos</button>{["BTC", "ETH", "SOL"].map((item) => <button key={item} className={symbol === item ? "chip on" : "chip"} type="button" onClick={() => setSymbol(item)}>{item}</button>)}</div>
+      <div className="tabs" role="tablist" aria-label="Filtrar historial"><button className={!symbol ? "chip on" : "chip"} type="button" onClick={() => setSymbol("")}>Todos</button>{ASSET_SYMBOLS.map((item) => <button key={item} className={symbol === item ? "chip on" : "chip"} type="button" onClick={() => setSymbol(item)}>{item}</button>)}</div>
+      {error ? <p className="status-bad" role="alert">{error}</p> : null}
+      {trades === null && !error ? <ScreenSkeleton /> : null}
       <div className="table-wrap panel">
         <table>
+          <caption className="sr">Historial de operaciones simuladas</caption>
           <thead><tr><th>Fecha</th><th>Activo</th><th>Lado</th><th>Entrada</th><th>Salida</th><th>Lev</th><th>Resultado</th><th>Comisión</th><th>Motivo</th></tr></thead>
           <tbody>
-            {trades.map((trade) => (
+            {(trades || []).map((trade) => (
               <tr key={String(trade.id)}>
                 <td>{when(Number(trade.closed_at))}</td>
                 <td>{String(trade.symbol)}</td>
@@ -36,7 +44,7 @@ export function HistoryScreen() {
             ))}
           </tbody>
         </table>
-        {trades.length === 0 ? <p className="empty">Todavía no hay cierres simulados.</p> : null}
+        {trades && trades.length === 0 ? <p className="empty">Todavía no hay cierres simulados.</p> : null}
       </div>
     </div>
   );
@@ -44,8 +52,9 @@ export function HistoryScreen() {
 
 export function AlertsScreen() {
   const { data, refresh } = useApp();
-  const [items, setItems] = useState<Array<Record<string, unknown>>>([]);
-  const [notes, setNotes] = useState<Array<Record<string, unknown>>>([]);
+  const toast = useToast();
+  const [items, setItems] = useState<Array<Record<string, unknown>> | null>(null);
+  const [notes, setNotes] = useState<Array<Record<string, unknown>> | null>(null);
   const [form, setForm] = useState({ symbol: "BTC", kind: "price_above", threshold: "" });
   async function load() {
     setItems((await api<{ alerts: Array<Record<string, unknown>> }>("/api/alerts")).alerts);
@@ -56,15 +65,18 @@ export function AlertsScreen() {
     <div className="grid">
       <div className="row"><h1>Alertas</h1><button className="btn" type="button" onClick={async () => { await api("/api/notifications/read", { method: "POST" }); await refresh(); await load(); }}>Marcar leídas</button></div>
       <p className="muted">Avisos dentro de la app. No hay push garantizado con el hosting gratuito.</p>
-      <form className="panel row" onSubmit={async (event) => { event.preventDefault(); await api("/api/alerts", { method: "POST", body: JSON.stringify(form) }); setForm({ ...form, threshold: "" }); await load(); }}>
-        <select value={form.symbol} onChange={(e) => setForm({ ...form, symbol: e.target.value })}>{(data?.quotes || []).map((q) => <option key={q.symbol}>{q.symbol}</option>)}</select>
-        <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}><option value="price_above">Precio por encima</option><option value="price_below">Precio por debajo</option><option value="move_pct">Movimiento %</option></select>
-        <input value={form.threshold} onChange={(e) => setForm({ ...form, threshold: e.target.value })} placeholder="Umbral" required />
+      <form className="panel row" onSubmit={async (event) => { event.preventDefault(); try { await api("/api/alerts", { method: "POST", body: JSON.stringify(form) }); setForm({ ...form, threshold: "" }); toast({ title: "Alerta creada", tone: "ok" }); await load(); } catch (err) { toast({ title: "No se creó", body: err instanceof Error ? err.message : "", tone: "danger" }); } }}>
+        <select aria-label="Activo" value={form.symbol} onChange={(e) => setForm({ ...form, symbol: e.target.value })}>{(data?.quotes || []).map((q) => <option key={q.symbol}>{q.symbol}</option>)}</select>
+        <select aria-label="Tipo de alerta" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}><option value="price_above">Precio por encima</option><option value="price_below">Precio por debajo</option><option value="move_pct">Movimiento %</option></select>
+        <input aria-label="Umbral" value={form.threshold} onChange={(e) => setForm({ ...form, threshold: e.target.value })} placeholder="Umbral" required />
         <button className="btn btn-primary" type="submit">Crear</button>
       </form>
-      {items.map((alert) => <div className="card row" key={String(alert.id)}><span>{String(alert.symbol)} {String(alert.kind)} {String(alert.threshold)}</span><button className="btn" type="button" onClick={async () => { await api("/api/alerts/delete", { method: "POST", body: JSON.stringify({ id: alert.id }) }); await load(); }}>Quitar</button></div>)}
+      {items === null ? <ScreenSkeleton /> : null}
+      {(items || []).map((alert) => <div className="card row" key={String(alert.id)}><span>{String(alert.symbol)} {String(alert.kind)} {String(alert.threshold)}</span><button className="btn" type="button" onClick={async () => { await api("/api/alerts/delete", { method: "POST", body: JSON.stringify({ id: alert.id }) }); toast({ title: "Alerta quitada" }); await load(); }}>Quitar</button></div>)}
+      {items && items.length === 0 ? <p className="empty">No tienes alertas de precio.</p> : null}
       <h2>Bandeja</h2>
-      {notes.map((note) => <article className="card" key={String(note.id)}><strong>{String(note.title)}</strong><p>{String(note.body)}</p><p className="fine">{when(Number(note.created_at))} · {String(note.category)} {note.read_at ? "" : "· nueva"}</p></article>)}
+      {notes && notes.length === 0 ? <p className="empty">La bandeja está vacía.</p> : null}
+      {(notes || []).map((note) => <article className="card" key={String(note.id)}><strong>{String(note.title)}</strong><p>{String(note.body)}</p><p className="fine">{when(Number(note.created_at))} · {String(note.category)} {note.read_at ? "" : "· nueva"}</p></article>)}
     </div>
   );
 }
@@ -72,13 +84,13 @@ export function AlertsScreen() {
 export function ProfileScreen() {
   const { data } = useApp();
   const router = useRouter();
-  if (!data) return null;
+  if (!data) return <ScreenSkeleton />;
   const account = data.account;
   return (
     <div className="grid">
       <div className="row"><span className="avatar" style={{ background: `hsl(${data.user.avatarHue} 70% 45%)`, width: 64, height: 64 }}>{data.user.username.slice(0, 1).toUpperCase()}</span><div><h1>{data.user.username}</h1><p className="muted">{data.user.email} · {data.user.role}</p></div></div>
       <div className="cards">
-        <article className="card"><span className="kicker">Saldo inicial</span><b>{account ? money(account.initialBalance) : "—"}</b></article>
+        <article className="card"><span className="kicker">Saldo inicial</span><b>{account ? <AnimatedNumber value={Number(account.initialBalance)} format={(n) => money(n)} /> : "—"}</b></article>
         <article className="card"><span className="kicker">Win rate</span><b>{account?.stats.winRate == null ? "—" : pct(account.stats.winRate * 100, 0)}</b></article>
         <article className="card"><span className="kicker">Mejor</span><b>{account?.stats.best == null ? "—" : signed(account.stats.best)}</b></article>
         <article className="card"><span className="kicker">Peor</span><b>{account?.stats.worst == null ? "—" : signed(account.stats.worst)}</b></article>
