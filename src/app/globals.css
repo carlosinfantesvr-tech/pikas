@@ -120,8 +120,10 @@ th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--lin
 @keyframes shimmer { to { background-position: -200% 0; } }
 .tabbar { display: none; }
 .fab { position: fixed; right: 18px; bottom: 22px; width: 58px; height: 58px; border-radius: 20px; border: 0; background: #102027; color: var(--cyan); box-shadow: var(--shadow); z-index: 20; }
-.pikas-mark { width: 28px; height: 28px; display: grid; place-items: center; color: var(--amber); }
-.pikas-mark svg { width: 26px; height: 26px; }
+.pikas-mark { width: 32px; height: 32px; display: grid; place-items: center; color: var(--amber); }
+.pikas-mark svg { width: 100%; height: 100%; }
+.pikas-mark.lg { width: 84px; height: 84px; }
+.pikas-mark.is-ai { padding: 3px; border-radius: 14px; background: radial-gradient(circle at 50% 40%, rgba(103,232,249,.22), transparent 70%); box-shadow: inset 0 0 0 1px rgba(103,232,249,.45); }
 .pikas-mark.is-live { color: var(--cyan); animation: glow 1.6s ease-in-out infinite; }
 @keyframes glow { 50% { filter: drop-shadow(0 0 8px rgba(103,232,249,.8)); } }
 .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 30; display: grid; align-items: end; }

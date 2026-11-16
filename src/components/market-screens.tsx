@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api, ApiError } from "./api";
+import { PikasMark } from "./logo";
 import { CandleChart, type CandlePoint } from "./chart";
 import { useApp } from "./shell";
 import { AnimatedNumber, PriceText, Skeleton, useToast } from "./ui";
@@ -36,6 +37,7 @@ export function LoginScreen() {
         }
       }}
     >
+      <PikasMark className="lg" />
       <p className="kicker">PIKAS</p>
       <h1>Entra a la simulación</h1>
       <p className="muted">Plataforma privada. Ninguna orden sale al mercado real.</p>

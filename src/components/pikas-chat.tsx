@@ -2,23 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { api, ApiError } from "./api";
+import { PikasMark } from "./logo";
+export { PikasMark };
 
 interface Msg {
   role: string;
   content: string;
   meta?: string | null;
   created_at?: number;
-}
-
-export function PikasMark({ live = false }: { live?: boolean }) {
-  return (
-    <span className={`pikas-mark ${live ? "is-live" : ""}`} aria-hidden>
-      <svg viewBox="0 0 32 32">
-        <path d="M5 22 L13 8 L18 16 L27 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
-        <path d="M5 25 H27" stroke="currentColor" strokeWidth="1.4" opacity=".55" />
-      </svg>
-    </span>
-  );
 }
 
 export function PikasChat({ compact = false }: { compact?: boolean }) {
@@ -105,7 +96,7 @@ export function PikasChat({ compact = false }: { compact?: boolean }) {
     return (
       <section className="chat-shell unconfigured">
         <header className="chat-id">
-          <PikasMark />
+          <PikasMark variant="ai" />
           <div>
             <h2>PIKAS AI</h2>
             <p>Asistente educativo de la plataforma</p>
@@ -122,7 +113,7 @@ export function PikasChat({ compact = false }: { compact?: boolean }) {
   return (
     <section className={`chat-shell ${compact ? "compact" : ""}`}>
       <header className="chat-id">
-        <PikasMark live={busy} />
+        <PikasMark variant="ai" live={busy} />
         <div>
           <h2>PIKAS AI</h2>
           <p>Educativo. No es asesoramiento financiero.</p>

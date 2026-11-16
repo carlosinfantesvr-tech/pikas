@@ -1,0 +1,14 @@
+export function PikasMark({ live = false, variant = "mark", className = "" }: { live?: boolean; variant?: "mark" | "ai"; className?: string }) {
+  return (
+    <span className={`pikas-mark ${variant === "ai" ? "is-ai" : ""} ${live ? "is-live" : ""} ${className}`} aria-hidden>
+      <svg viewBox="0 0 64 64">
+        <path
+          fill="currentColor"
+          d="M32 4c-1.2 8.4-8.6 14.2-16.4 16.2C8.2 22 4 28.6 4 35.4 4 44.2 10.6 51 19.2 51c3.6 0 6.4-1.1 8.8-3.1L24.6 58h14.8l-3.4-10.1c2.4 2 5.2 3.1 8.8 3.1C53.4 51 60 44.2 60 35.4c0-6.8-4.2-13.4-11.6-15.2C40.6 18.2 33.2 12.4 32 4z"
+        />
+        <path d="M18 42.5l8.2-7.2 6.2 4.4L46 26" fill="none" stroke="#67E8F9" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M39.5 26H46v6.5" fill="none" stroke="#67E8F9" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
+}

@@ -12,7 +12,15 @@ export const metadata: Metadata = {
   applicationName: "PIKAS",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "PIKAS", statusBarStyle: "black-translucent" },
-  icons: { icon: "/icons/icon-192.png", apple: "/icons/icon-192.png" },
+  icons: {
+    icon: [
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
+  other: { "apple-touch-startup-image": "/icons/splash.png" },
 };
 
 export const viewport: Viewport = {

@@ -1,58 +1,35 @@
-import { deflateSync } from "zlib";
-import { writeFileSync, mkdirSync } from "fs";
+import { mkdirSync, writeFileSync, readFileSync } from "fs";
+import { spawnSync } from "child_process";
 
-function png(size) {
-  const raw = [];
-  for (let y = 0; y < size; y++) {
-    const row = Buffer.alloc(1 + size * 4);
-    row[0] = 0;
-    for (let x = 0; x < size; x++) {
-      const nx = x / size;
-      const ny = y / size;
-      const bg = nx * 0.15 + ny * 0.05;
-      let r = 8 + bg * 20;
-      let g = 9 + bg * 16;
-      let b = 13 + bg * 18;
-      const peak = Math.abs(ny - (0.72 - Math.abs(nx - 0.42) * 0.95));
-      if (peak < 0.025 && nx > 0.12 && nx < 0.86) {
-        r = 245; g = 185; b = 66;
-      }
-      const o = (row.length && 4) * x + 1;
-      row[o] = r; row[o + 1] = g; row[o + 2] = b; row[o + 3] = 255;
-    }
-    raw.push(row);
-  }
-  const data = deflateSync(Buffer.concat(raw));
-  const chunk = (type, body) => {
-    const t = Buffer.from(type);
-    const len = Buffer.alloc(4);
-    len.writeUInt32BE(body.length);
-    const crc = Buffer.alloc(4);
-    const crcVal = crc32(Buffer.concat([t, body]));
-    crc.writeUInt32BE(crcVal >>> 0);
-    return Buffer.concat([len, t, body, crc]);
-  };
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(size, 0);
-  ihdr.writeUInt32BE(size, 4);
-  ihdr[8] = 8; ihdr[9] = 6;
-  const sig = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-  return Buffer.concat([sig, chunk("IHDR", ihdr), chunk("IDAT", data), chunk("IEND", Buffer.alloc(0))]);
+const svg = readFileSync("public/logo.svg", "utf8");
+
+function page(w, h, mark, label) {
+  return `<!doctype html><html><head><meta charset="utf-8"><style>
+    html,body{margin:0;width:${w}px;height:${h}px;background:#08090d;display:grid;place-items:center}
+    .wrap{display:grid;justify-items:center;gap:18px}
+    .box{width:${mark}px;height:${mark}px}
+    .box svg{width:100%;height:100%;display:block}
+    p{margin:0;color:#e8edf5;letter-spacing:.32em;font:600 ${Math.round(mark * 0.18)}px sans-serif}
+  </style></head><body><div class="wrap"><div class="box">${svg}</div>${label ? "<p>PIKAS</p>" : ""}</div></body></html>`;
 }
 
-const table = new Uint32Array(256);
-for (let n = 0; n < 256; n++) {
-  let c = n;
-  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-  table[n] = c;
-}
-function crc32(buf) {
-  let c = 0xffffffff;
-  for (const byte of buf) c = table[(c ^ byte) & 255] ^ (c >>> 8);
-  return c ^ 0xffffffff;
+function shoot(name, w, h, mark, label = false) {
+  const file = `/tmp/${name}.html`;
+  writeFileSync(file, page(w, h, mark, label));
+  const out = `public/icons/${name}.png`;
+  const res = spawnSync("google-chrome-stable", [
+    "--headless=new", "--disable-gpu", "--hide-scrollbars", "--no-sandbox",
+    `--window-size=${w},${h}`, `--screenshot=${out}`, `file://${file}`,
+  ], { stdio: "inherit" });
+  if (res.status !== 0) process.exit(res.status ?? 1);
 }
 
 mkdirSync("public/icons", { recursive: true });
-writeFileSync("public/icons/icon-192.png", png(192));
-writeFileSync("public/icons/icon-512.png", png(512));
-console.log("icons ok");
+shoot("icon-192", 192, 192, 120);
+shoot("icon-512", 512, 512, 320);
+shoot("maskable-192", 192, 192, 92);
+shoot("maskable-512", 512, 512, 246);
+shoot("apple-touch-icon", 180, 180, 112);
+shoot("favicon-32", 32, 32, 26);
+shoot("splash", 540, 1166, 220, true);
+console.log("ok");
