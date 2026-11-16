@@ -1,5 +1,6 @@
 import { barriers, resolveBattle, scorePrediction, type BattleCandle } from "../engine/battle";
 import type { Db } from "./db";
+import { ASSET_SYMBOLS } from "./symbols";
 import type { QuoteView } from "./trading";
 
 export async function createBattle(
@@ -10,7 +11,7 @@ export async function createBattle(
 ) {
   const reward = Number(input.rewardPct);
   const risk = Number(input.riskPct);
-  if (!["BTC", "ETH", "SOL", "AAPL", "NVDA", "SPX"].includes(input.symbol)) return { ok: false as const, error: "Activo no soportado." };
+  if (!ASSET_SYMBOLS.includes(input.symbol)) return { ok: false as const, error: "Activo no soportado." };
   if (!(reward > 0 && reward <= 20) || !(risk > 0 && risk <= 20)) return { ok: false as const, error: "Riesgo y objetivo deben estar entre 0 y 20%." };
   if (input.voteMinutes < 5 || input.competeMinutes < 5) return { ok: false as const, error: "Las ventanas mínimas son de 5 minutos." };
   const id = crypto.randomUUID();

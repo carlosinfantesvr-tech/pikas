@@ -124,6 +124,13 @@ describe("parsers de mercado", () => {
     const kraken = parseKrakenTicker({
       result: { XXBTZUSD: { c: ["65000.1", "0.1"], o: "64000", v: ["1", "2"] } },
     });
+    const extra = parseKrakenTicker({
+      result: {
+        XXRPZUSD: { c: ["0.96", "1"], o: "1", v: ["1", "2"] },
+        XDGUSD: { c: ["0.05", "1"], o: "0.06", v: ["1", "2"] },
+      },
+    });
+    expect(extra.map((row) => row.symbol).sort()).toEqual(["DOGE", "XRP"]);
     expect(kraken[0]?.symbol).toBe("BTC");
     expect(kraken[0]?.source).toBe("Kraken");
     expect(kraken[0]?.changeBasis).toBe("day_open");

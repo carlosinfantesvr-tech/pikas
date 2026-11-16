@@ -9,6 +9,7 @@ import { useApp } from "./shell";
 import { AnimatedNumber, PriceText, Skeleton, useToast } from "./ui";
 import { ago, money, pct, signed } from "@/lib/format";
 import { liquidationPrice } from "@/engine/trading";
+import { ASSET_SYMBOLS } from "@/lib/symbols";
 
 export function LoginScreen() {
   const router = useRouter();
@@ -126,7 +127,8 @@ export function DashboardScreen() {
         <h1>Hola, {data.user.username}</h1>
         <p className="muted">Precios de lectura. Cuentas, órdenes y resultados son simulación.</p>
       </div>
-      {account?.catchupNote ? <div className="panel status-bad">{account.catchupNote}</div> : null}
+      {account?.catchupNote ? <div className="panel status-bad" role="status">{account.catchupNote}</div> : null}
+      {data.quotes.every((quote) => !quote.price) ? <p className="panel status-bad" role="alert">No hay precios reales ahora. No se muestran cifras inventadas.</p> : null}
       <div className="cards">
         <article className="card"><span className="kicker">Saldo libre</span><b><AnimatedNumber value={account ? Number(account.balance) : null} format={(n) => money(n)} /></b></article>
         <article className="card"><span className="kicker">Patrimonio</span><b><AnimatedNumber value={account ? Number(account.equity) : null} format={(n) => money(n)} /></b></article>
@@ -176,7 +178,7 @@ export function TradingScreen() {
     <div className="grid">
       <div className="row">
         <h1>Paper trading</h1>
-        <div className="tabs">{["BTC", "ETH", "SOL", "AAPL", "NVDA", "SPX"].map((item) => <button key={item} className={symbol === item ? "chip on" : "chip"} type="button" onClick={() => setSymbol(item)}>{item}</button>)}</div>
+        <div className="tabs" role="tablist" aria-label="Activo">{ASSET_SYMBOLS.map((item) => <button key={item} role="tab" aria-selected={symbol === item} className={symbol === item ? "chip on" : "chip"} type="button" onClick={() => setSymbol(item)}>{item}</button>)}</div>
         <div className="tabs">{["1m", "5m", "15m", "1h", "1d"].map((item) => <button key={item} className={interval === item ? "chip on" : "chip"} type="button" onClick={() => setIntervalValue(item)}>{item}</button>)}</div>
       </div>
       <div className="layout-trade">
@@ -254,8 +256,8 @@ function TpSl({ positionId, onDone }: { positionId: string; onDone: () => Promis
         await onDone();
       } catch (err) { toast({ title: "No se guardó", body: err instanceof Error ? err.message : "", tone: "danger" }); }
     }}>
-      <input placeholder="Take profit" value={tp} onChange={(e) => setTp(e.target.value)} />
-      <input placeholder="Stop loss" value={sl} onChange={(e) => setSl(e.target.value)} />
+      <input aria-label="Take profit" placeholder="Take profit" value={tp} onChange={(e) => setTp(e.target.value)} inputMode="decimal" />
+      <input aria-label="Stop loss" placeholder="Stop loss" value={sl} onChange={(e) => setSl(e.target.value)} inputMode="decimal" />
       <button className="btn" type="submit">Guardar</button>
     </form>
   );

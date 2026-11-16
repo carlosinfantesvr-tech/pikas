@@ -1,25 +1,9 @@
 import type { Db } from "./db";
 import { q } from "../engine/money";
+import { ASSETS, type Asset } from "./symbols";
 
-export interface Asset {
-  symbol: string;
-  name: string;
-  kind: "crypto" | "equity" | "index";
-  coinbase?: string;
-  kraken?: string;
-  gecko?: string;
-  yahoo?: string;
-  funding?: string;
-}
-
-export const ASSETS: Asset[] = [
-  { symbol: "BTC", name: "Bitcoin", kind: "crypto", coinbase: "BTC-USD", kraken: "XBTUSD", gecko: "bitcoin", funding: "PF_XBTUSD" },
-  { symbol: "ETH", name: "Ethereum", kind: "crypto", coinbase: "ETH-USD", kraken: "ETHUSD", gecko: "ethereum", funding: "PF_ETHUSD" },
-  { symbol: "SOL", name: "Solana", kind: "crypto", coinbase: "SOL-USD", kraken: "SOLUSD", gecko: "solana", funding: "PF_SOLUSD" },
-  { symbol: "AAPL", name: "Apple", kind: "equity", yahoo: "AAPL" },
-  { symbol: "NVDA", name: "NVIDIA", kind: "equity", yahoo: "NVDA" },
-  { symbol: "SPX", name: "S&P 500", kind: "index", yahoo: "^GSPC" },
-];
+export type { Asset };
+export { ASSETS };
 
 export interface QuoteDraft {
   symbol: string;

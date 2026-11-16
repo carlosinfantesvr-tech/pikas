@@ -98,22 +98,8 @@ async function ensureBaseline(db: Db): Promise<void> {
   if (!existing.length) {
     await db.query("insert into ai_budget (id, daily_usd, monthly_usd) values (1, $1, $2)", [daily, monthly]);
   }
-  const agents = [
-    ["baseline", "Baseline técnico", "rules", null, "Reglas EMA/RSI sobre velas reales. No es un modelo de lenguaje."],
-    ["openai", "OpenAI", "llm", "openai", "Agente conectado al proveedor OpenAI si hay clave."],
-    ["anthropic", "Anthropic", "llm", "anthropic", "Agente conectado a Anthropic si hay clave."],
-    ["gemini", "Gemini", "llm", "gemini", "Agente conectado a Gemini si hay clave."],
-    ["xai", "Grok", "llm", "xai", "Agente conectado a xAI si hay clave."],
-  ] as const;
-  for (const [slug, name, kind, provider, description] of agents) {
-    const found = await db.query("select id from agents where slug = $1", [slug]);
-    if (!found.length) {
-      await db.query(
-        "insert into agents (id, slug, name, kind, provider, description) values ($1,$2,$3,$4,$5,$6)",
-        [crypto.randomUUID(), slug, name, kind, provider, description],
-      );
-    }
-  }
+  const { syncArenaAgents } = await import("./arena");
+  await syncArenaAgents(db);
   const email = process.env.BOOTSTRAP_ADMIN_EMAIL?.toLowerCase().trim();
   const password = process.env.BOOTSTRAP_ADMIN_PASSWORD;
   if (!email || !password) return;

@@ -6,11 +6,11 @@ La interfaz está en español y se puede instalar como PWA.
 
 ## Qué hay
 
-- Panel con precios de BTC, ETH, SOL, Apple, NVIDIA y el S&P 500.
+- Panel con precios de BTC, ETH, SOL, XRP, ADA, DOGE, LINK, AVAX, Apple, Microsoft, NVIDIA y el S&P 500.
 - Paper trading: market, limit, stop, TP/SL, cierre parcial, funding cuando hay tasa real, liquidación simulada.
 - Market Battle, rankings y perfiles.
-- AI Arena con un agente de reglas visible y hueco para modelos de pago.
-- PIKAS AI, el chat del router. Sin clave de proveedor dice que no está configurado.
+- AI Arena: la regla EMA/RSI y un competidor por cada motor. Sin su variable de entorno sale como no configurado y no opera.
+- PIKAS AI y el Advisor usan la misma cadena. El chat no dice qué motor respondió. Sin claves dice que no está configurado.
 - Alertas dentro de la app, administración e invitaciones.
 - Entrada con contraseña y, si lo configuras, con Google restringido a una lista o a una invitación.
 

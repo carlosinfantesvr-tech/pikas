@@ -10,6 +10,8 @@ Primero los que pueden costar cero: Ollama (si hay URL), Gemini, Groq, OpenRoute
 
 En una tarea de análisis, dentro del mismo motor se prueba antes la variante fuerte. Si esa falla, no se insiste con la otra variante del mismo motor en la misma pregunta.
 
+En AI Arena cada motor y cada modelo es un competidor aparte, con su cuenta de 100 USDT simulados. PIKAS AI y el Advisor siguen usando la cadena, no un solo motor. Sin la variable de entorno, la ficha dice no configurado y no hay orden. Basta poner la clave y volver a cargar: no hay otro interruptor.
+
 ## Lo que ve el usuario
 
 Sin claves: «PIKAS AI no configurado». Con claves: la respuesta, firmada como PIKAS AI. Si el texto nombra a otro motor, se sustituye antes de mostrarlo.

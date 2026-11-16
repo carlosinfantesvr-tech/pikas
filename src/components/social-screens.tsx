@@ -3,29 +3,36 @@
 import { useEffect, useState } from "react";
 import { api } from "./api";
 import { useApp } from "./shell";
-import { FlipList, useToast } from "./ui";
+import { AnimatedNumber, FlipList, Skeleton, useToast } from "./ui";
 import { money, pct, when } from "@/lib/format";
+import { ASSETS } from "@/lib/symbols";
 import { PikasChat } from "./pikas-chat";
 
 export function BattleScreen() {
   const { data } = useApp();
   const toast = useToast();
-  const [battles, setBattles] = useState<Array<Record<string, unknown>>>([]);
+  const [battles, setBattles] = useState<Array<Record<string, unknown>> | null>(null);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({ symbol: "BTC", voteMinutes: 30, competeMinutes: 120, rewardPct: "1", riskPct: "0.8" });
-  async function load() { const res = await api<{ battles: Array<Record<string, unknown>> }>("/api/battle"); setBattles(res.battles); }
+  async function load() {
+    try { const res = await api<{ battles: Array<Record<string, unknown>> }>("/api/battle"); setBattles(res.battles); setError(""); }
+    catch (err) { setError(err instanceof Error ? err.message : "No se pudieron cargar las rondas"); setBattles([]); }
+  }
   useEffect(() => { load().catch(() => undefined); }, []);
   return (
     <div className="grid">
       <div><p className="kicker">Market Battle</p><h1>Predice la dirección</h1><p className="muted">SUBE o BAJA antes de que cierre la votación. El resultado sale de velas reales. Si una vela toca las dos barreras, no se inventa un ganador.</p></div>
       {data?.user.role === "admin" ? (
         <form className="panel row" onSubmit={async (event) => { event.preventDefault(); await api("/api/battle", { method: "POST", body: JSON.stringify(form) }); toast({ title: "Ronda creada", tone: "ok" }); await load(); }}>
-          <select value={form.symbol} onChange={(e) => setForm({ ...form, symbol: e.target.value })}>{["BTC", "ETH", "SOL"].map((s) => <option key={s}>{s}</option>)}</select>
+          <select aria-label="Activo de la ronda" value={form.symbol} onChange={(e) => setForm({ ...form, symbol: e.target.value })}>{ASSETS.filter((asset) => asset.kind === "crypto").map((asset) => <option key={asset.symbol}>{asset.symbol}</option>)}</select>
           <input type="number" value={form.voteMinutes} onChange={(e) => setForm({ ...form, voteMinutes: Number(e.target.value) })} />
           <input type="number" value={form.competeMinutes} onChange={(e) => setForm({ ...form, competeMinutes: Number(e.target.value) })} />
           <button className="btn btn-primary" type="submit">Crear ronda</button>
         </form>
       ) : null}
-      {battles.map((battle) => (
+      {battles === null ? <div className="grid"><Skeleton className="sk-boot" /><Skeleton className="sk-boot" /></div> : null}
+      {error ? <p className="status-bad" role="alert">{error}</p> : null}
+      {(battles || []).map((battle) => (
         <article className="card" key={String(battle.id)}>
           <div className="row"><h2>{String(battle.symbol)}</h2><span className="chip">{String(battle.status)}</span></div>
           <p className="fine">Voto hasta {when(Number(battle.vote_ends_at))} · fin {when(Number(battle.ends_at))}</p>
@@ -42,7 +49,7 @@ export function BattleScreen() {
           {battle.resolution_note ? <p>{String(battle.resolution_note)}</p> : null}
         </article>
       ))}
-      {battles.length === 0 ? <p className="empty">No hay rondas. Un administrador puede crear la primera.</p> : null}
+      {battles && battles.length === 0 ? <p className="empty">No hay rondas. Un administrador puede crear la primera.</p> : null}
     </div>
   );
 }
@@ -50,14 +57,18 @@ export function BattleScreen() {
 export function ArenaScreen() {
   const toast = useToast();
   const [board, setBoard] = useState<{ agents: Array<Record<string, unknown>>; decisions: Array<Record<string, unknown>> } | null>(null);
+  const [error, setError] = useState("");
   const [symbol, setSymbol] = useState("BTC");
-  async function load() { setBoard(await api("/api/arena")); }
+  async function load() {
+    try { setBoard(await api("/api/arena")); setError(""); }
+    catch (err) { setError(err instanceof Error ? err.message : "No se pudo cargar la arena"); }
+  }
   useEffect(() => { load().catch(() => undefined); }, []);
   return (
     <div className="grid">
-      <div><p className="kicker">AI Arena</p><h1>Mismas reglas, cuentas separadas</h1><p className="muted">El baseline es una regla EMA/RSI, no un modelo de lenguaje. Los modelos sin clave aparecen como no configurados y no inventan operaciones.</p></div>
+      <div><p className="kicker">AI Arena</p><h1>Mismas reglas, cuentas separadas</h1><p className="muted">Cada motor con su variable de entorno es un competidor con cuenta simulada propia. El mismo contexto para todos. Sin clave: no configurado y sin operaciones. El baseline es una regla, no un modelo.</p></div>
       <div className="row">
-        {["BTC", "ETH", "SOL"].map((item) => <button key={item} className={symbol === item ? "chip on" : "chip"} type="button" onClick={() => setSymbol(item)}>{item}</button>)}
+        {ASSETS.filter((asset) => asset.kind === "crypto").map((asset) => <button key={asset.symbol} className={symbol === asset.symbol ? "chip on" : "chip"} type="button" onClick={() => setSymbol(asset.symbol)}>{asset.symbol}</button>)}
         <button className="btn btn-primary" type="button" onClick={async () => {
           try { await api("/api/arena/run", { method: "POST", body: JSON.stringify({ symbol, mode: "competition" }) }); toast({ title: "Ciclo registrado", tone: "ok" }); await load(); }
           catch (err) { toast({ title: "No se ejecutó", body: err instanceof Error ? err.message : "", tone: "danger" }); }
@@ -68,14 +79,14 @@ export function ArenaScreen() {
           <article className="card" key={String(agent.id)}>
             <h3>{String(agent.name)}</h3>
             <p className="fine">{String(agent.description)}</p>
-            <p>{agent.kind === "rules" ? "Reglas locales" : "Modelo externo"}</p>
+            <p>{agent.kind === "rules" ? "Reglas locales" : agent.configured ? "Configurado" : "No configurado"}</p>
           </article>
         ))}
       </div>
       <h2>Decisiones</h2>
       {(board?.decisions || []).map((decision) => (
         <article className="card" key={String(decision.id)}>
-          <strong>{String(decision.action)}</strong> · {decision.provider === "rules" ? "Regla técnica" : "PIKAS AI"}
+          <strong>{String(decision.action)}</strong> · {decision.provider === "rules" ? "Regla técnica" : `${String(decision.provider)} · ${String(decision.model || "")}`}
           <p>{String(decision.rationale || "")}</p>
           <p className="fine">{String(decision.execution_note || "")} {Number(decision.self_reported) ? "· confianza autodeclarada, no calibrada" : ""}</p>
         </article>
@@ -95,7 +106,7 @@ export function AdvisorScreen() {
   return (
     <div className="grid">
       <div><p className="kicker">AI Advisor</p><h1>Lectura del mercado</h1></div>
-      <div className="tabs">{["BTC", "ETH", "SOL", "AAPL", "NVDA", "SPX"].map((item) => <button key={item} className={symbol === item ? "chip on" : "chip"} type="button" onClick={() => setSymbol(item)}>{item}</button>)}</div>
+      <div className="tabs" role="tablist" aria-label="Activo del análisis">{ASSETS.map((asset) => <button key={asset.symbol} role="tab" aria-selected={symbol === asset.symbol} className={symbol === asset.symbol ? "chip on" : "chip"} type="button" onClick={() => setSymbol(asset.symbol)}>{asset.symbol}</button>)}</div>
       <article className="panel">
         <p className="fine">{String(data?.label || "")} Fuente: {String(data?.source || "n/d")}</p>
         {error || data?.error ? <p className="status-bad">{error || String(data?.error)}</p> : null}

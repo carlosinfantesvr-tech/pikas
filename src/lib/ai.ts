@@ -280,6 +280,28 @@ async function remember(db: Db, userId: string, note: string) {
   );
 }
 
+export async function callOneProvider(input: {
+  provider: string;
+  model: string;
+  messages: ChatMessage[];
+  fetchImpl?: typeof fetch;
+}): Promise<{ ok: true; content: string } | { ok: false; error: string; code: "not_configured" | "provider_error" }> {
+  const info = providerInfos().find((item) => item.id === input.provider);
+  if (!info?.configured) return { ok: false, error: "No configurado", code: "not_configured" };
+  try {
+    const result = await streamModel({
+      provider: input.provider,
+      model: input.model,
+      messages: input.messages,
+      fetchImpl: input.fetchImpl,
+      onDelta: () => undefined,
+    });
+    return { ok: true, content: result.content };
+  } catch {
+    return { ok: false, error: "El motor no respondió.", code: "provider_error" };
+  }
+}
+
 export async function runRoutedChat(input: {
   db: Db;
   userId: string;
