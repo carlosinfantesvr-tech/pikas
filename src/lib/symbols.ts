@@ -1,0 +1,27 @@
+export interface Asset {
+  symbol: string;
+  name: string;
+  kind: "crypto" | "equity" | "index";
+  coinbase?: string;
+  kraken?: string;
+  gecko?: string;
+  yahoo?: string;
+  funding?: string;
+}
+
+export const ASSETS: Asset[] = [
+  { symbol: "BTC", name: "Bitcoin", kind: "crypto", coinbase: "BTC-USD", kraken: "XBTUSD", gecko: "bitcoin", funding: "PF_XBTUSD" },
+  { symbol: "ETH", name: "Ethereum", kind: "crypto", coinbase: "ETH-USD", kraken: "ETHUSD", gecko: "ethereum", funding: "PF_ETHUSD" },
+  { symbol: "SOL", name: "Solana", kind: "crypto", coinbase: "SOL-USD", kraken: "SOLUSD", gecko: "solana", funding: "PF_SOLUSD" },
+  { symbol: "XRP", name: "XRP", kind: "crypto", coinbase: "XRP-USD", kraken: "XRPUSD", gecko: "ripple" },
+  { symbol: "ADA", name: "Cardano", kind: "crypto", coinbase: "ADA-USD", kraken: "ADAUSD", gecko: "cardano" },
+  { symbol: "DOGE", name: "Dogecoin", kind: "crypto", coinbase: "DOGE-USD", kraken: "XDGUSD", gecko: "dogecoin" },
+  { symbol: "LINK", name: "Chainlink", kind: "crypto", coinbase: "LINK-USD", kraken: "LINKUSD", gecko: "chainlink" },
+  { symbol: "AVAX", name: "Avalanche", kind: "crypto", coinbase: "AVAX-USD", kraken: "AVAXUSD", gecko: "avalanche-2" },
+  { symbol: "AAPL", name: "Apple", kind: "equity", yahoo: "AAPL" },
+  { symbol: "MSFT", name: "Microsoft", kind: "equity", yahoo: "MSFT" },
+  { symbol: "NVDA", name: "NVIDIA", kind: "equity", yahoo: "NVDA" },
+  { symbol: "SPX", name: "S&P 500", kind: "index", yahoo: "^GSPC" },
+];
+
+export const ASSET_SYMBOLS = ASSETS.map((asset) => asset.symbol);

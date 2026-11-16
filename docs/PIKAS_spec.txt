@@ -1,0 +1,1555 @@
+     1|PROYECTO PIKAS
+     2|
+     3|Construcción autónoma de una plataforma avanzada de simulación de trading, competición entre inteligencias artificiales y análisis de mercados
+     4|
+     5|Quiero que desarrolles desde cero una plataforma web completa llamada PIKAS.
+     6|
+     7|No quiero que te limites a diseñar una interfaz, generar una landing page o crear un prototipo visual. Quiero que construyas una aplicación web funcional, con frontend, backend, base de datos, sistemas de autenticación, motores de simulación, integración de datos de mercado, inteligencia artificial, persistencia, paneles interactivos y todas las funcionalidades descritas en este documento.
+     8|
+     9|Tienes libertad para decidir cómo construirla.
+    10|
+    11|No quiero imponerte un framework, lenguaje de programación, base de datos, proveedor de alojamiento, librería de gráficos, arquitectura, herramientas de desarrollo ni servicios externos.
+    12|
+    13|Quiero que tú elijas las mejores herramientas disponibles para conseguir el resultado.
+    14|
+    15|Puedes utilizar las tecnologías, aplicaciones, APIs, frameworks, agentes de programación, servicios cloud, bases de datos y herramientas que consideres oportunas.
+    16|
+    17|Puedes investigar alternativas, comparar proveedores y cambiar de estrategia si encuentras una solución mejor.
+    18|
+    19|No necesitas preguntarme qué framework utilizar, qué librería elegir o cómo organizar internamente el código. Toma esas decisiones como arquitecto principal del proyecto.
+    20|
+    21|Sin embargo:
+    22|
+    23|* No inventes funcionalidades que todavía no funcionan.
+    24|* No presentes datos ficticios como datos reales.
+    25|* No afirmes que una integración funciona si no la has probado.
+    26|* No expongas credenciales ni claves API.
+    27|* No contrates servicios ni generes gastos sin autorización.
+    28|* No elimines datos ni sobrescribas proyectos sin autorización.
+    29|* No utilices dinero real ni permitas operaciones financieras reales.
+    30|* No sacrifiques la seguridad por terminar más rápido.
+    31|
+    32|Quiero que trabajes de forma autónoma, que resuelvas los problemas técnicos y que tomes la iniciativa.
+    33|
+    34|⸻
+    35|
+    36|1. VISIÓN GENERAL
+    37|
+    38|PIKAS será una plataforma privada de simulación de mercados financieros y competición entre inteligencias artificiales.
+    39|
+    40|Su objetivo es reunir en una sola aplicación:
+    41|
+    42|1. Simulación de trading con precios reales.
+    43|2. Competiciones comunitarias de predicciones.
+    44|3. Competiciones entre distintas inteligencias artificiales.
+    45|4. Un asistente de inteligencia artificial para análisis de mercados.
+    46|5. Un sistema central llamado PIKAS AI que coordine todos los módulos.
+    47|6. Un sistema inteligente que seleccione diferentes modelos de IA según la tarea, optimizando el coste y el consumo de tokens.
+    48|7. Rankings, estadísticas, historiales y perfiles de usuarios.
+    49|8. Un sistema de monitorización y alertas.
+    50|
+    51|La plataforma será inicialmente privada, para mí y mis amigos, pero debe estar preparada para crecer y admitir más usuarios.
+    52|
+    53|Quiero una experiencia visual profesional, moderna, rápida y muy cuidada.
+    54|
+    55|Debe funcionar desde:
+    56|
+    57|* iPhone.
+    58|* Android.
+    59|* iPad.
+    60|* Ordenadores.
+    61|* Navegadores móviles y de escritorio.
+    62|
+    63|No quiero depender de una aplicación nativa. La prioridad es una web responsive que se pueda instalar en la pantalla de inicio como PWA si lo consideras conveniente.
+    64|
+    65|Toda la plataforma será exclusivamente educativa y de simulación.
+    66|
+    67|Los precios pueden proceder de mercados reales, pero todas las cuentas, órdenes, posiciones, ganancias, pérdidas y liquidaciones serán ficticias.
+    68|
+    69|No habrá conexión con brokers, wallets, Phantom, depósitos, retiradas ni operaciones reales.
+    70|
+    71|⸻
+    72|
+    73|2. IDENTIDAD VISUAL Y DISEÑO
+    74|
+    75|Quiero una identidad visual reconocible para PIKAS.
+    76|
+    77|La referencia estética debe situarse entre una terminal profesional de mercados, una plataforma moderna de análisis financiero y un producto tecnológico premium.
+    78|
+    79|Puedes estudiar referencias como:
+    80|
+    81|* Quantiva CrowdLevels.
+    82|* Hyperliquid.
+    83|* TradingView.
+    84|* Terminales profesionales de análisis.
+    85|* Dashboards modernos de inteligencia artificial.
+    86|
+    87|No quiero copiar ninguna web. Quiero que desarrolles una identidad propia.
+    88|
+    89|Estilo visual
+    90|
+    91|Características:
+    92|
+    93|* Tema oscuro como predeterminado.
+    94|* Fondo negro, carbón o gris muy oscuro.
+    95|* Superficies diferenciadas mediante tonos sutiles.
+    96|* Verde para resultados positivos.
+    97|* Rojo para resultados negativos.
+    98|* Azul, violeta o cian para información tecnológica y elementos de IA.
+    99|* Tipografía moderna y muy legible.
+   100|* Iconografía coherente.
+   101|* Bordes discretos.
+   102|* Sombras suaves.
+   103|* Transparencias utilizadas con moderación.
+   104|* Microanimaciones.
+   105|* Transiciones fluidas.
+   106|* Jerarquía visual clara.
+   107|* Excelente adaptación a pantallas pequeñas.
+   108|
+   109|No quiero una interfaz genérica de plantilla.
+   110|
+   111|Quiero que parezca un producto que podría utilizar una empresa tecnológica especializada en mercados financieros.
+   112|
+   113|Experiencia móvil
+   114|
+   115|En iPhone, la aplicación debe estar realmente adaptada.
+   116|
+   117|No basta con reducir la versión de escritorio.
+   118|
+   119|Debes:
+   120|
+   121|* Reorganizar los paneles.
+   122|* Priorizar la información importante.
+   123|* Crear navegación móvil intuitiva.
+   124|* Utilizar botones cómodos.
+   125|* Evitar tablas que se salgan de pantalla.
+   126|* Optimizar gráficos.
+   127|* Evitar desplazamientos horizontales innecesarios.
+   128|* Mantener accesibles las funciones principales.
+   129|* Crear menús y paneles desplegables cuando sea conveniente.
+   130|
+   131|En escritorio puedes mostrar una distribución más completa, con varios paneles simultáneos.
+   132|
+   133|Animaciones
+   134|
+   135|Quiero animaciones cuidadas:
+   136|
+   137|* Entrada de paneles.
+   138|* Transiciones entre páginas.
+   139|* Actualización de precios.
+   140|* Indicadores de actividad.
+   141|* Estados de carga.
+   142|* Notificaciones.
+   143|* Cambios de posición.
+   144|* Resultados de competiciones.
+   145|* Interacciones de los agentes de IA.
+   146|
+   147|Las animaciones nunca deben ralentizar la aplicación.
+   148|
+   149|Añade una opción para reducir movimiento y respeta las preferencias de accesibilidad.
+   150|
+   151|⸻
+   152|
+   153|3. ESTRUCTURA PRINCIPAL DE PIKAS
+   154|
+   155|La plataforma tendrá cinco grandes módulos:
+   156|
+   157|1. Market Battle.
+   158|2. Paper Trading.
+   159|3. AI Arena.
+   160|4. AI Advisor.
+   161|5. PIKAS AI.
+   162|
+   163|Además, tendrá:
+   164|
+   165|* Dashboard principal.
+   166|* Perfil de usuario.
+   167|* Rankings.
+   168|* Historial.
+   169|* Centro de notificaciones.
+   170|* Configuración.
+   171|* Administración.
+   172|* Monitorización de sistemas.
+   173|
+   174|Diseña una navegación coherente para acceder a todos ellos.
+   175|
+   176|Puedes modificar los nombres, la distribución o la estructura si encuentras una solución claramente superior, pero debes conservar las funcionalidades.
+   177|
+   178|⸻
+   179|
+   180|4. DASHBOARD PRINCIPAL
+   181|
+   182|Quiero que el Dashboard sea el centro de operaciones de PIKAS.
+   183|
+   184|Debe mostrar información relevante sin saturar al usuario.
+   185|
+   186|Panel superior
+   187|
+   188|Incluir:
+   189|
+   190|* Logotipo PIKAS.
+   191|* Navegación principal.
+   192|* Perfil del usuario.
+   193|* Saldo virtual.
+   194|* Estado de conexión.
+   195|* Notificaciones.
+   196|* Acceso a PIKAS AI.
+   197|
+   198|Resumen de mercado
+   199|
+   200|Mostrar:
+   201|
+   202|* BTC.
+   203|* ETH.
+   204|* SOL.
+   205|* Otros activos que decidas incorporar.
+   206|* Precio actual.
+   207|* Variación porcentual.
+   208|* Variación en 24 horas.
+   209|* Volumen.
+   210|* Gráficos pequeños.
+   211|* Estado de actualización de datos.
+   212|
+   213|Los precios deben proceder de fuentes reales de solo lectura.
+   214|
+   215|Si una fuente falla, indica claramente que los datos están retrasados o no disponibles.
+   216|
+   217|Resumen personal
+   218|
+   219|Mostrar:
+   220|
+   221|* Saldo virtual.
+   222|* Patrimonio virtual.
+   223|* PnL total.
+   224|* PnL diario.
+   225|* Posiciones abiertas.
+   226|* Número de operaciones.
+   227|* Win rate.
+   228|* Mejor operación.
+   229|* Peor operación.
+   230|* Evolución del rendimiento.
+   231|
+   232|Actividad
+   233|
+   234|Mostrar:
+   235|
+   236|* Últimas operaciones simuladas.
+   237|* Actividad de los agentes.
+   238|* Resultados recientes de Market Battle.
+   239|* Competiciones activas.
+   240|* Alertas relevantes.
+   241|* Eventos importantes.
+   242|
+   243|Acceso rápido
+   244|
+   245|Accesos a:
+   246|
+   247|* Paper Trading.
+   248|* Market Battle.
+   249|* AI Arena.
+   250|* AI Advisor.
+   251|* PIKAS AI.
+   252|
+   253|Quiero que el dashboard sea personalizable si técnicamente resulta conveniente.
+   254|
+   255|⸻
+   256|
+   257|5. MÓDULO MARKET BATTLE
+   258|
+   259|Market Battle será un sistema de competición comunitaria.
+   260|
+   261|Los usuarios competirán realizando predicciones sobre la evolución de determinados mercados.
+   262|
+   263|Funcionamiento
+   264|
+   265|Se crearán rondas de competición con una duración configurable.
+   266|
+   267|Cada ronda tendrá:
+   268|
+   269|* Periodo de votación.
+   270|* Periodo de competición.
+   271|* Precio inicial.
+   272|* Precio final.
+   273|* Activo.
+   274|* Objetivo.
+   275|* Stop.
+   276|* Resultado.
+   277|* Puntuación.
+   278|
+   279|El usuario podrá votar:
+   280|
+   281|* SUBE.
+   282|* BAJA.
+   283|
+   284|La predicción se realizará antes del inicio de la fase de competición.
+   285|
+   286|Mercado
+   287|
+   288|Inicialmente:
+   289|
+   290|* BTC.
+   291|* ETH.
+   292|* SOL.
+   293|
+   294|Podrás incorporar más activos si la arquitectura lo permite.
+   295|
+   296|Utiliza precios reales obtenidos mediante fuentes fiables.
+   297|
+   298|Sistema de puntuación
+   299|
+   300|Diseña un sistema transparente y reproducible.
+   301|
+   302|Debe contemplar:
+   303|
+   304|* Predicción correcta.
+   305|* Predicción incorrecta.
+   306|* Riesgo asumido.
+   307|* Relación riesgo/recompensa.
+   308|* Tiempo de resolución.
+   309|* Participación.
+   310|
+   311|Puedes utilizar un sistema de puntos basado en riesgo/recompensa.
+   312|
+   313|Documenta las reglas y evita que el sistema favorezca artificialmente a determinados participantes.
+   314|
+   315|Competición comunitaria
+   316|
+   317|Debe existir:
+   318|
+   319|* Número de participantes.
+   320|* Distribución de votos.
+   321|* Porcentaje de SUBE y BAJA.
+   322|* Resultado final.
+   323|* Ranking de la ronda.
+   324|* Historial de rondas.
+   325|* Clasificación general.
+   326|
+   327|Ranking
+   328|
+   329|Crear:
+   330|
+   331|* Ranking diario.
+   332|* Ranking semanal.
+   333|* Ranking mensual.
+   334|* Ranking histórico.
+   335|
+   336|Cada usuario tendrá estadísticas propias.
+   337|
+   338|No permitas que un usuario modifique directamente sus resultados.
+   339|
+   340|Transparencia
+   341|
+   342|Los resultados deben quedar registrados.
+   343|
+   344|Los usuarios deben poder consultar:
+   345|
+   346|* Precio inicial.
+   347|* Precio final.
+   348|* Fuente de precios.
+   349|* Horario.
+   350|* Regla aplicada.
+   351|* Resultado.
+   352|
+   353|No utilices resultados inventados.
+   354|
+   355|⸻
+   356|
+   357|6. MÓDULO PAPER TRADING
+   358|
+   359|Este será uno de los módulos más importantes de PIKAS.
+   360|
+   361|Quiero un simulador de trading completo, con funcionamiento similar al de una plataforma profesional de derivados, pero exclusivamente ficticio.
+   362|
+   363|No debe conectarse a ningún sistema de ejecución de operaciones reales.
+   364|
+   365|Cuenta virtual
+   366|
+   367|El usuario podrá elegir entre varios balances iniciales:
+   368|
+   369|* 10 USDT.
+   370|* 50 USDT.
+   371|* 100 USDT.
+   372|* 500 USDT.
+   373|
+   374|También podrá reiniciar su cuenta virtual.
+   375|
+   376|El saldo y el historial deben conservarse aunque:
+   377|
+   378|* Cierre Safari.
+   379|* Apague el iPhone.
+   380|* Cambie de dispositivo.
+   381|* Vuelva al día siguiente.
+   382|
+   383|La información debe almacenarse en el servidor y la base de datos.
+   384|
+   385|No dependas únicamente de localStorage.
+   386|
+   387|Activos
+   388|
+   389|Inicialmente:
+   390|
+   391|* BTC.
+   392|* ETH.
+   393|* SOL.
+   394|
+   395|La arquitectura debe permitir incorporar otros activos.
+   396|
+   397|Gráficos
+   398|
+   399|Incluye:
+   400|
+   401|* Velas japonesas.
+   402|* Temporalidades.
+   403|* Volumen.
+   404|* Indicadores técnicos.
+   405|* Precio actual.
+   406|* Precio de entrada.
+   407|* TP.
+   408|* SL.
+   409|* Marcadores de operaciones.
+   410|
+   411|Puedes elegir TradingView Lightweight Charts u otra solución superior.
+   412|
+   413|Tipos de operación
+   414|
+   415|Permitir:
+   416|
+   417|* LONG.
+   418|* SHORT.
+   419|
+   420|Apalancamiento simulado:
+   421|
+   422|* 1x.
+   423|* 2x.
+   424|* 3x.
+   425|* 5x.
+   426|* 10x.
+   427|* 15x.
+   428|* 20x.
+   429|
+   430|Mostrar claramente cómo aumenta el riesgo al utilizar apalancamiento.
+   431|
+   432|Tipos de órdenes
+   433|
+   434|Implementar:
+   435|
+   436|* Market.
+   437|* Limit.
+   438|* Stop Market.
+   439|* Take Profit.
+   440|* Stop Loss.
+   441|
+   442|También:
+   443|
+   444|* Cierre total.
+   445|* Cierre parcial.
+   446|* Modificación de TP y SL.
+   447|* Cancelación de órdenes pendientes.
+   448|
+   449|Información de una posición
+   450|
+   451|Mostrar:
+   452|
+   453|* Activo.
+   454|* Dirección.
+   455|* Precio de entrada.
+   456|* Precio actual.
+   457|* Tamaño de posición.
+   458|* Margen.
+   459|* Apalancamiento.
+   460|* PnL no realizado.
+   461|* PnL realizado.
+   462|* ROE.
+   463|* Precio estimado de liquidación.
+   464|* TP.
+   465|* SL.
+   466|* Comisiones.
+   467|* Funding acumulado.
+   468|* Tiempo abierta.
+   469|
+   470|Motor financiero
+   471|
+   472|Desarrolla un motor financiero independiente del frontend.
+   473|
+   474|Debe gestionar:
+   475|
+   476|* Margen aislado.
+   477|* Cálculo de PnL.
+   478|* Comisiones.
+   479|* Funding.
+   480|* Liquidaciones simuladas.
+   481|* Órdenes pendientes.
+   482|* Ejecución.
+   483|* Cierres parciales.
+   484|* Balance.
+   485|* Patrimonio.
+   486|* Libro contable.
+   487|* Recuperación del estado.
+   488|
+   489|Utiliza precisión monetaria segura.
+   490|
+   491|Evita errores de coma flotante en cálculos financieros.
+   492|
+   493|El motor debe tener pruebas automatizadas.
+   494|
+   495|Documenta las fórmulas, supuestos y limitaciones.
+   496|
+   497|Persistencia y funcionamiento sin Safari
+   498|
+   499|Esta característica es fundamental.
+   500|
+   501|Si un usuario abre una posición y cierra Safari, el servidor debe continuar gestionando la simulación siempre que el alojamiento y el servicio estén operativos.
+   502|
+   503|Cuando vuelva a entrar debe encontrar:
+   504|
+   505|* Su saldo actualizado.
+   506|* Sus posiciones abiertas.
+   507|* Las órdenes ejecutadas.
+   508|* Las liquidaciones.
+   509|* El historial.
+   510|* Las comisiones.
+   511|* El resultado.
+   512|
+   513|No simules que un motor sigue funcionando si el servidor está dormido.
+   514|
+   515|Si el alojamiento suspende la aplicación, diseña una estrategia de recuperación mediante datos históricos y registra los intervalos no verificables.
+   516|
+   517|No ejecutes liquidaciones ficticias basándote en información insuficiente o precios caducados.
+   518|
+   519|Historial
+   520|
+   521|Crear una tabla completa con:
+   522|
+   523|* Fecha.
+   524|* Activo.
+   525|* LONG/SHORT.
+   526|* Entrada.
+   527|* Salida.
+   528|* Apalancamiento.
+   529|* Resultado.
+   530|* Comisiones.
+   531|* Duración.
+   532|* Motivo del cierre.
+   533|
+   534|Añade filtros y estadísticas.
+   535|
+   536|⸻
+   537|
+   538|7. MÓDULO AI ARENA
+   539|
+   540|AI Arena será el espacio donde diferentes modelos de inteligencia artificial compitan entre sí.
+   541|
+   542|Quiero una competición real entre modelos conectados mediante sus APIs oficiales.
+   543|
+   544|Puedes elegir los proveedores y modelos más adecuados.
+   545|
+   546|Investiga las opciones disponibles y sus costes.
+   547|
+   548|Entre los posibles proveedores:
+   549|
+   550|* OpenAI.
+   551|* Anthropic.
+   552|* Google Gemini.
+   553|* xAI Grok.
+   554|* Otros proveedores compatibles.
+   555|
+   556|No tienes que utilizar todos.
+   557|
+   558|Selecciona los modelos según calidad, coste, velocidad y disponibilidad.
+   559|
+   560|Funcionamiento
+   561|
+   562|Cada IA recibirá:
+   563|
+   564|* El mismo activo.
+   565|* El mismo contexto temporal.
+   566|* Los mismos datos de mercado.
+   567|* Las mismas condiciones.
+   568|* El mismo balance virtual.
+   569|* Las mismas reglas.
+   570|
+   571|Cada agente deberá analizar el mercado y decidir si:
+   572|
+   573|* Abre LONG.
+   574|* Abre SHORT.
+   575|* Mantiene una posición.
+   576|* Cierra una posición.
+   577|* No realiza ninguna operación.
+   578|
+   579|Cuentas independientes
+   580|
+   581|Cada IA tendrá su propia cuenta virtual.
+   582|
+   583|Por ejemplo:
+   584|
+   585|* Grok.
+   586|* Claude.
+   587|* GPT.
+   588|* Gemini.
+   589|
+   590|Cada cuenta tendrá:
+   591|
+   592|* Balance inicial.
+   593|* Patrimonio.
+   594|* Posiciones.
+   595|* Historial.
+   596|* PnL.
+   597|* Win rate.
+   598|* Drawdown.
+   599|* Comisiones.
+   600|* Resultados.
+   601|
+   602|Los agentes no podrán modificar los resultados de otros.
+   603|
+   604|Modos de competición
+   605|
+   606|Implementa:
+   607|
+   608|Modo autónomo
+   609|
+   610|La IA toma decisiones dentro de los permisos y límites configurados para su cuenta ficticia.
+   611|
+   612|Modo asistido
+   613|
+   614|La IA propone una operación, explica sus motivos y espera autorización del usuario.
+   615|
+   616|Modo competición
+   617|
+   618|Varias IA reciben el mismo contexto y compiten bajo las mismas reglas.
+   619|
+   620|Análisis de las IA
+   621|
+   622|Cada decisión debe guardar:
+   623|
+   624|* Modelo.
+   625|* Fecha.
+   626|* Activo.
+   627|* Precio.
+   628|* Dirección.
+   629|* Justificación.
+   630|* Confianza declarada.
+   631|* Riesgo.
+   632|* TP.
+   633|* SL.
+   634|* Resultado posterior.
+   635|
+   636|No confundas la confianza expresada por un modelo con una probabilidad estadística calibrada.
+   637|
+   638|Comparación
+   639|
+   640|Quiero un panel donde se puedan comparar:
+   641|
+   642|* Rentabilidad.
+   643|* Win rate.
+   644|* Beneficio medio.
+   645|* Pérdida media.
+   646|* Drawdown máximo.
+   647|* Número de operaciones.
+   648|* Riesgo/recompensa.
+   649|* Consistencia.
+   650|* Resultados por activo.
+   651|* Resultados por periodo.
+   652|
+   653|No utilices únicamente rentabilidad para declarar un ganador.
+   654|
+   655|⸻
+   656|
+   657|8. MÓDULO AI ADVISOR
+   658|
+   659|AI Advisor será el asistente de análisis de mercados de PIKAS.
+   660|
+   661|Quiero una experiencia de chat moderna.
+   662|
+   663|El usuario podrá preguntar cosas como:
+   664|
+   665|* ¿Qué está pasando con Bitcoin?
+   666|* Analiza ETH.
+   667|* ¿Qué indicadores muestran debilidad?
+   668|* ¿Cuáles son los niveles técnicos importantes?
+   669|* ¿Qué diferencias hay entre los análisis de las IA?
+   670|* Explícame qué es el funding.
+   671|* ¿Por qué se ha liquidado una posición de simulación?
+   672|* Analiza mi historial de Paper Trading.
+   673|
+   674|Capacidades
+   675|
+   676|Debe poder:
+   677|
+   678|* Analizar datos actuales.
+   679|* Consultar indicadores técnicos.
+   680|* Analizar gráficos.
+   681|* Consultar noticias mediante fuentes autorizadas.
+   682|* Resumir información.
+   683|* Explicar conceptos.
+   684|* Analizar operaciones simuladas.
+   685|* Comparar modelos.
+   686|* Consultar estadísticas del usuario.
+   687|* Generar informes.
+   688|
+   689|Indicadores
+   690|
+   691|Incluir cuando sean útiles:
+   692|
+   693|* RSI.
+   694|* MACD.
+   695|* EMA.
+   696|* SMA.
+   697|* Bollinger Bands.
+   698|* ATR.
+   699|* Volumen.
+   700|* VWAP.
+   701|
+   702|No quiero que se limite a enumerar indicadores.
+   703|
+   704|Debe explicar qué significan, sus limitaciones y cómo se relacionan con los datos disponibles.
+   705|
+   706|Respuestas
+   707|
+   708|Las respuestas deben mostrar:
+   709|
+   710|* Modelo utilizado.
+   711|* Fecha y hora del análisis.
+   712|* Activo.
+   713|* Datos consultados.
+   714|* Fuentes cuando correspondan.
+   715|* Limitaciones.
+   716|* Explicación comprensible.
+   717|
+   718|No debe presentar especulación como certeza.
+   719|
+   720|⸻
+   721|
+   722|9. PIKAS AI: EL CEREBRO CENTRAL
+   723|
+   724|Este módulo será el coordinador principal de toda la plataforma.
+   725|
+   726|No quiero simplemente otro chatbot.
+   727|
+   728|Quiero un sistema que pueda coordinar los módulos, consultar información, analizar situaciones, detectar eventos y proponer acciones dentro de PIKAS.
+   729|
+   730|Funciones
+   731|
+   732|PIKAS AI debe poder:
+   733|
+   734|1. Consultar el estado de Paper Trading.
+   735|2. Consultar Market Battle.
+   736|3. Consultar AI Arena.
+   737|4. Utilizar AI Advisor.
+   738|5. Consultar estadísticas.
+   739|6. Comparar diferentes modelos.
+   740|7. Detectar cambios relevantes en el mercado.
+   741|8. Vigilar activos seleccionados.
+   742|9. Crear alertas.
+   743|10. Elaborar informes.
+   744|11. Proponer experimentos.
+   745|12. Recomendar mejoras en los sistemas.
+   746|13. Identificar errores de datos.
+   747|14. Supervisar el funcionamiento de los agentes.
+   748|
+   749|Sistema proactivo
+   750|
+   751|Quiero que pueda trabajar de forma proactiva.
+   752|
+   753|Ejemplo:
+   754|
+   755|Detecta un movimiento importante en BTC.
+   756|
+   757|Entonces:
+   758|
+   759|* Consulta los datos.
+   760|* Analiza el contexto.
+   761|* Puede pedir una segunda opinión a otro modelo.
+   762|* Compara resultados.
+   763|* Evalúa la relevancia.
+   764|* Genera una alerta.
+   765|* Explica lo sucedido.
+   766|* Propone una acción dentro del simulador, si corresponde.
+   767|
+   768|No debe generar alertas constantemente por movimientos irrelevantes.
+   769|
+   770|Debe disponer de umbrales configurables.
+   771|
+   772|Autonomía controlada
+   773|
+   774|Puede investigar, consultar, analizar y preparar propuestas de manera autónoma.
+   775|
+   776|Las acciones que modifiquen cuentas, configuraciones o estados importantes deben tener permisos, controles y registros adecuados.
+   777|
+   778|En Paper Trading puede operar autónomamente dentro de los límites que el usuario haya establecido.
+   779|
+   780|No debe tener capacidad para realizar operaciones reales.
+   781|
+   782|⸻
+   783|
+   784|10. PIKAS AI ROUTER: SISTEMA DE AHORRO DE TOKENS
+   785|
+   786|Este componente es especialmente importante.
+   787|
+   788|Quiero que construyas un sistema inteligente que permita a PIKAS utilizar distintos modelos de inteligencia artificial sin depender constantemente de uno solo.
+   789|
+   790|El objetivo es ahorrar tokens, reducir costes, evitar llamadas innecesarias y seleccionar automáticamente el modelo más adecuado.
+   791|
+   792|No quiero que cada módulo tenga sus propias integraciones desordenadas.
+   793|
+   794|Quiero un sistema centralizado.
+   795|
+   796|Selección automática
+   797|
+   798|El Router analizará cada tarea y elegirá el modelo adecuado.
+   799|
+   800|Ejemplos:
+   801|
+   802|* Una pregunta sencilla puede utilizar un modelo económico.
+   803|* Una tarea compleja de programación puede utilizar un modelo más potente.
+   804|* Un análisis de mercado puede utilizar un modelo especializado.
+   805|* Una tarea que necesite varias opiniones puede consultar más de un modelo.
+   806|* Una tarea repetitiva puede utilizar una respuesta almacenada si sigue siendo válida.
+   807|
+   808|Optimización
+   809|
+   810|Implementa:
+   811|
+   812|1. Selección automática de modelos.
+   813|2. Compresión del contexto.
+   814|3. Resúmenes de conversaciones largas.
+   815|4. Eliminación de información irrelevante.
+   816|5. Caché de respuestas cuando sea seguro.
+   817|6. Detección de tareas repetidas.
+   818|7. Límites de tokens.
+   819|8. Límites de llamadas.
+   820|9. Control de presupuesto.
+   821|10. Reintentos inteligentes.
+   822|11. Fallback entre proveedores.
+   823|12. Registro de consumo.
+   824|
+   825|No envíes el historial completo a todos los modelos.
+   826|
+   827|Envía solamente el contexto necesario.
+   828|
+   829|No llames a cuatro modelos para responder una pregunta que puede resolver uno.
+   830|
+   831|Panel del Router
+   832|
+   833|Crear un dashboard específico que muestre:
+   834|
+   835|* Proveedores conectados.
+   836|* Modelos disponibles.
+   837|* Modelo seleccionado.
+   838|* Estado de cada proveedor.
+   839|* Tokens utilizados.
+   840|* Tokens ahorrados estimados.
+   841|* Coste estimado.
+   842|* Número de peticiones.
+   843|* Latencia.
+   844|* Errores.
+   845|* Modelos más utilizados.
+   846|* Distribución del trabajo.
+   847|* Presupuesto diario.
+   848|* Presupuesto mensual.
+   849|
+   850|Gestión de proveedores
+   851|
+   852|Permite:
+   853|
+   854|* Activar modelos.
+   855|* Desactivar modelos.
+   856|* Configurar prioridades.
+   857|* Establecer límites.
+   858|* Seleccionar modelos preferidos.
+   859|* Configurar modelos alternativos.
+   860|* Elegir si una tarea necesita una o varias IA.
+   861|
+   862|Seguridad
+   863|
+   864|Las API keys deben almacenarse de forma segura en el servidor o en un gestor de secretos.
+   865|
+   866|Nunca deben aparecer en el frontend.
+   867|
+   868|Nunca deben incluirse en respuestas, logs públicos ni código descargable.
+   869|
+   870|Utiliza APIs oficiales y respeta los límites de cada proveedor.
+   871|
+   872|Las suscripciones de ChatGPT, Claude o Grok no deben considerarse automáticamente acceso gratuito a sus APIs.
+   873|
+   874|Diseña el sistema para funcionar inicialmente con los proveedores que realmente estén disponibles y configurados.
+   875|
+   876|Si no hay una clave API, muestra el proveedor como no configurado. No simules una conexión.
+   877|
+   878|Control de gastos
+   879|
+   880|Debe existir un sistema que impida superar los límites configurados.
+   881|
+   882|Cuando se alcance un presupuesto:
+   883|
+   884|* Detener las llamadas no esenciales.
+   885|* Utilizar alternativas económicas si están autorizadas.
+   886|* Avisar al usuario.
+   887|* Mantener las funciones que no dependan de IA.
+   888|
+   889|Nunca generar gastos inesperados.
+   890|
+   891|⸻
+   892|
+   893|11. SISTEMA DE USUARIOS Y CUENTAS
+   894|
+   895|PIKAS será inicialmente una plataforma privada.
+   896|
+   897|Implementa:
+   898|
+   899|* Registro.
+   900|* Inicio de sesión.
+   901|* Cierre de sesión.
+   902|* Recuperación de cuenta.
+   903|* Perfiles.
+   904|* Roles.
+   905|* Permisos.
+   906|* Sesiones seguras.
+   907|
+   908|Perfiles
+   909|
+   910|Cada usuario tendrá:
+   911|
+   912|* Nombre de usuario.
+   913|* Avatar.
+   914|* Fecha de registro.
+   915|* Estadísticas.
+   916|* Saldo virtual.
+   917|* Historial.
+   918|* Ranking.
+   919|* Actividad.
+   920|
+   921|Roles
+   922|
+   923|Puedes diseñar:
+   924|
+   925|* Administrador.
+   926|* Usuario.
+   927|* Invitado.
+   928|
+   929|El administrador podrá:
+   930|
+   931|* Gestionar usuarios.
+   932|* Gestionar competiciones.
+   933|* Configurar activos.
+   934|* Consultar logs.
+   935|* Supervisar agentes.
+   936|* Gestionar proveedores de IA.
+   937|* Consultar errores.
+   938|* Gestionar límites de uso.
+   939|
+   940|No permitas que los usuarios normales accedan a herramientas administrativas.
+   941|
+   942|⸻
+   943|
+   944|12. RANKINGS Y COMPETICIONES
+   945|
+   946|Quiero que la plataforma tenga una parte competitiva.
+   947|
+   948|Crear rankings para:
+   949|
+   950|* Usuarios.
+   951|* Agentes de IA.
+   952|* Market Battle.
+   953|* Paper Trading.
+   954|* Rendimiento mensual.
+   955|* Rendimiento histórico.
+   956|
+   957|Cada ranking debe indicar sus reglas.
+   958|
+   959|No mezcles resultados de cuentas con balances iniciales diferentes sin normalizarlos adecuadamente.
+   960|
+   961|Incluye:
+   962|
+   963|* Posición.
+   964|* Usuario o agente.
+   965|* Rentabilidad.
+   966|* PnL.
+   967|* Win rate.
+   968|* Drawdown.
+   969|* Número de operaciones.
+   970|
+   971|Los rankings deben calcularse en servidor.
+   972|
+   973|No permitas manipulación desde el navegador.
+   974|
+   975|⸻
+   976|
+   977|13. NOTIFICACIONES Y ALERTAS
+   978|
+   979|Crear un centro de notificaciones.
+   980|
+   981|Tipos:
+   982|
+   983|* TP ejecutado.
+   984|* SL ejecutado.
+   985|* Liquidación simulada.
+   986|* Orden ejecutada.
+   987|* Orden cancelada.
+   988|* Nueva competición.
+   989|* Resultado de Market Battle.
+   990|* Cambio de ranking.
+   991|* Alerta de mercado.
+   992|* Aviso de PIKAS AI.
+   993|* Fallo de proveedor.
+   994|* Datos retrasados.
+   995|* Presupuesto de IA alcanzado.
+   996|
+   997|Permitir:
+   998|
+   999|* Marcar como leído.
+  1000|* Consultar historial.
+  1001|* Filtrar.
+  1002|* Configurar alertas.
+  1003|* Desactivar categorías.
+  1004|
+  1005|Puedes implementar notificaciones push si la tecnología y el navegador lo permiten.
+  1006|
+  1007|No prometas notificaciones cuando el dispositivo o el servidor no puedan garantizarlas.
+  1008|
+  1009|⸻
+  1010|
+  1011|14. FUENTES DE DATOS Y MERCADOS
+  1012|
+  1013|Investiga y selecciona proveedores fiables.
+  1014|
+  1015|Puedes utilizar:
+  1016|
+  1017|* Binance.
+  1018|* Coinbase.
+  1019|* Kraken.
+  1020|* CoinGecko.
+  1021|* Otros proveedores adecuados.
+  1022|
+  1023|La elección es tuya.
+  1024|
+  1025|Necesito:
+  1026|
+  1027|* Precios actualizados.
+  1028|* Velas históricas.
+  1029|* Volumen.
+  1030|* Datos de mercado.
+  1031|* Información suficiente para los módulos.
+  1032|
+  1033|Diseña una capa de proveedores intercambiable.
+  1034|
+  1035|No acoples toda la plataforma a una sola API.
+  1036|
+  1037|Si una fuente falla:
+  1038|
+  1039|* Utiliza una alternativa si está disponible.
+  1040|* Registra el origen.
+  1041|* Indica el retraso.
+  1042|* No mezcles datos incompatibles sin identificarlo.
+  1043|* No simules actualizaciones.
+  1044|
+  1045|⸻
+  1046|
+  1047|15. GRÁFICOS Y ANALÍTICA
+  1048|
+  1049|Quiero una experiencia visual potente.
+  1050|
+  1051|Incluye gráficos para:
+  1052|
+  1053|* Evolución de BTC, ETH y SOL.
+  1054|* Evolución del saldo.
+  1055|* PnL acumulado.
+  1056|* Drawdown.
+  1057|* Distribución de operaciones.
+  1058|* Rentabilidad por activo.
+  1059|* Rentabilidad por IA.
+  1060|* Comparación de modelos.
+  1061|* Resultados de competiciones.
+  1062|* Consumo de tokens.
+  1063|* Costes de IA.
+  1064|
+  1065|Los gráficos deben ser interactivos cuando tenga sentido.
+  1066|
+  1067|Permite cambiar periodos.
+  1068|
+  1069|Añade tooltips.
+  1070|
+  1071|Utiliza formatos claros.
+  1072|
+  1073|⸻
+  1074|
+  1075|16. ADMINISTRACIÓN Y MONITORIZACIÓN
+  1076|
+  1077|Necesito un panel administrativo para comprobar que todo funciona.
+  1078|
+  1079|Mostrar:
+  1080|
+  1081|* Estado del backend.
+  1082|* Estado de la base de datos.
+  1083|* Estado de los proveedores de mercado.
+  1084|* Estado de los proveedores de IA.
+  1085|* Última actualización.
+  1086|* Número de usuarios.
+  1087|* Operaciones simuladas.
+  1088|* Agentes activos.
+  1089|* Tareas pendientes.
+  1090|* Errores.
+  1091|* Latencia.
+  1092|* Consumo de recursos.
+  1093|
+  1094|Incluye logs estructurados.
+  1095|
+  1096|Permite identificar problemas sin tener que revisar manualmente todo el código.
+  1097|
+  1098|No muestres secretos.
+  1099|
+  1100|⸻
+  1101|
+  1102|17. ARQUITECTURA Y TECNOLOGÍA
+  1103|
+  1104|Tienes libertad completa para elegir la arquitectura.
+  1105|
+  1106|Quiero que selecciones las mejores herramientas disponibles para este proyecto.
+  1107|
+  1108|Puedes elegir:
+  1109|
+  1110|* Frontend.
+  1111|* Backend.
+  1112|* Base de datos.
+  1113|* Sistema de autenticación.
+  1114|* Servicios en tiempo real.
+  1115|* Procesamiento en segundo plano.
+  1116|* Colas de tareas.
+  1117|* Caché.
+  1118|* Gráficos.
+  1119|* Proveedores de datos.
+  1120|* APIs de inteligencia artificial.
+  1121|* Hosting.
+  1122|* Monitorización.
+  1123|* Testing.
+  1124|* CI/CD.
+  1125|* Herramientas de desarrollo.
+  1126|
+  1127|No quiero que elijas tecnologías simplemente porque sean populares.
+  1128|
+  1129|Elige según:
+  1130|
+  1131|* Fiabilidad.
+  1132|* Coste.
+  1133|* Facilidad de mantenimiento.
+  1134|* Seguridad.
+  1135|* Escalabilidad.
+  1136|* Compatibilidad móvil.
+  1137|* Rendimiento.
+  1138|* Disponibilidad.
+  1139|* Facilidad para desplegar.
+  1140|
+  1141|Requisito importante
+  1142|
+  1143|Los motores financieros y los sistemas que gestionen estados importantes deben funcionar en servidor.
+  1144|
+  1145|No dependas del navegador para:
+  1146|
+  1147|* Ejecutar órdenes.
+  1148|* Calcular balances.
+  1149|* Resolver liquidaciones.
+  1150|* Gestionar rankings.
+  1151|* Autorizar operaciones.
+  1152|* Guardar historiales.
+  1153|
+  1154|La interfaz será una capa de visualización y control.
+  1155|
+  1156|La base de datos debe conservar los datos importantes.
+  1157|
+  1158|Implementa migraciones y copias de seguridad cuando el proveedor lo permita.
+  1159|
+  1160|⸻
+  1161|
+  1162|18. SEGURIDAD Y FIABILIDAD
+  1163|
+  1164|La seguridad es prioritaria.
+  1165|
+  1166|Implementa:
+  1167|
+  1168|* Validación de entradas.
+  1169|* Autenticación segura.
+  1170|* Autorización por roles.
+  1171|* Protección de sesiones.
+  1172|* Rate limiting.
+  1173|* Protección contra abuso.
+  1174|* Validación de operaciones en servidor.
+  1175|* Gestión segura de secretos.
+  1176|* Logs sin información sensible.
+  1177|* Protección de endpoints.
+  1178|* Manejo de errores.
+  1179|* Copias de seguridad.
+  1180|* Recuperación de estado.
+  1181|
+  1182|Las cuentas virtuales deben estar aisladas entre usuarios.
+  1183|
+  1184|Los agentes de IA no pueden modificar saldos directamente.
+  1185|
+  1186|Todas las modificaciones financieras deben pasar por el motor correspondiente.
+  1187|
+  1188|Mantén un libro contable auditable.
+  1189|
+  1190|Los resultados deben poder reconstruirse y verificarse.
+  1191|
+  1192|⸻
+  1193|
+  1194|19. EXPERIENCIA DE USUARIO
+  1195|
+  1196|Quiero que PIKAS sea fácil de utilizar aunque tenga muchísimas funcionalidades.
+  1197|
+  1198|No quiero que el usuario se pierda entre paneles.
+  1199|
+  1200|Diseña:
+  1201|
+  1202|* Navegación clara.
+  1203|* Onboarding inicial.
+  1204|* Explicaciones breves.
+  1205|* Estados vacíos útiles.
+  1206|* Indicadores de carga.
+  1207|* Mensajes de error comprensibles.
+  1208|* Confirmaciones para acciones importantes.
+  1209|* Ayudas contextuales.
+  1210|* Tooltips.
+  1211|* Accesibilidad.
+  1212|
+  1213|Los datos de demostración deben estar identificados claramente.
+  1214|
+  1215|No mezcles cuentas ficticias de demostración con cuentas reales de usuarios de la plataforma.
+  1216|
+  1217|⸻
+  1218|
+  1219|20. ESTRATEGIA DE DESARROLLO
+  1220|
+  1221|Quiero que desarrolles el proyecto de manera autónoma.
+  1222|
+  1223|No quiero que me preguntes constantemente qué hacer a continuación.
+  1224|
+  1225|Toma decisiones, resuelve problemas y continúa.
+  1226|
+  1227|Puedes reorganizar las fases si encuentras una estrategia técnicamente mejor.
+  1228|
+  1229|Como orientación, el orden lógico podría ser:
+  1230|
+  1231|Etapa 1: Fundamentos
+  1232|
+  1233|* Elegir arquitectura.
+  1234|* Crear estructura.
+  1235|* Preparar base de datos.
+  1236|* Configurar autenticación.
+  1237|* Diseñar sistema visual.
+  1238|* Crear navegación.
+  1239|
+  1240|Etapa 2: Dashboard y datos
+  1241|
+  1242|* Dashboard.
+  1243|* Fuentes de mercado.
+  1244|* Gráficos.
+  1245|* Actualización de precios.
+  1246|* Estados de conexión.
+  1247|
+  1248|Etapa 3: Paper Trading
+  1249|
+  1250|* Motor financiero.
+  1251|* Cuentas virtuales.
+  1252|* Órdenes.
+  1253|* Posiciones.
+  1254|* TP/SL.
+  1255|* Funding.
+  1256|* Liquidaciones.
+  1257|* Historial.
+  1258|* Persistencia.
+  1259|
+  1260|Etapa 4: Market Battle
+  1261|
+  1262|* Rondas.
+  1263|* Votaciones.
+  1264|* Resultados.
+  1265|* Puntuación.
+  1266|* Rankings.
+  1267|
+  1268|Etapa 5: AI Router
+  1269|
+  1270|* Proveedores.
+  1271|* Selección de modelos.
+  1272|* Gestión de tokens.
+  1273|* Presupuestos.
+  1274|* Fallback.
+  1275|* Caché.
+  1276|* Métricas.
+  1277|
+  1278|Etapa 6: AI Advisor
+  1279|
+  1280|* Chat.
+  1281|* Análisis.
+  1282|* Indicadores.
+  1283|* Datos actuales.
+  1284|* Historial.
+  1285|
+  1286|Etapa 7: AI Arena
+  1287|
+  1288|* Agentes.
+  1289|* Cuentas independientes.
+  1290|* Competición.
+  1291|* Métricas.
+  1292|* Comparaciones.
+  1293|
+  1294|Etapa 8: PIKAS AI
+  1295|
+  1296|* Coordinación.
+  1297|* Herramientas.
+  1298|* Memoria contextual.
+  1299|* Monitorización.
+  1300|* Alertas.
+  1301|* Autonomía controlada.
+  1302|
+  1303|Etapa 9: Unificación
+  1304|
+  1305|* Rankings generales.
+  1306|* Perfiles.
+  1307|* Notificaciones.
+  1308|* Panel administrativo.
+  1309|* Integración de módulos.
+  1310|
+  1311|Etapa 10: Pruebas y publicación
+  1312|
+  1313|* Pruebas completas.
+  1314|* Seguridad.
+  1315|* Rendimiento.
+  1316|* Responsive.
+  1317|* Persistencia.
+  1318|* Recuperación.
+  1319|* Despliegue.
+  1320|
+  1321|No tienes que seguir exactamente este orden si encuentras uno mejor.
+  1322|
+  1323|⸻
+  1324|
+  1325|21. PRUEBAS OBLIGATORIAS
+  1326|
+  1327|No quiero que consideres terminada una funcionalidad porque visualmente parezca funcionar.
+  1328|
+  1329|Debes probarla.
+  1330|
+  1331|Paper Trading
+  1332|
+  1333|* Abrir LONG.
+  1334|* Abrir SHORT.
+  1335|* Ejecutar órdenes.
+  1336|* Cancelar órdenes.
+  1337|* Ejecutar TP.
+  1338|* Ejecutar SL.
+  1339|* Cerrar parcialmente.
+  1340|* Cerrar completamente.
+  1341|* Calcular comisiones.
+  1342|* Calcular funding.
+  1343|* Simular liquidación.
+  1344|* Recuperar cuenta.
+  1345|* Reiniciar sesión.
+  1346|* Comprobar persistencia.
+  1347|* Comprobar aislamiento entre usuarios.
+  1348|
+  1349|Market Battle
+  1350|
+  1351|* Crear ronda.
+  1352|* Registrar votos.
+  1353|* Cerrar votación.
+  1354|* Resolver resultado.
+  1355|* Calcular puntuación.
+  1356|* Actualizar ranking.
+  1357|
+  1358|AI Arena
+  1359|
+  1360|* Conectar modelos.
+  1361|* Enviar contexto equivalente.
+  1362|* Recibir respuestas.
+  1363|* Registrar decisiones.
+  1364|* Ejecutar simulaciones.
+  1365|* Calcular estadísticas.
+  1366|
+  1367|AI Router
+  1368|
+  1369|* Seleccionar modelo.
+  1370|* Cambiar proveedor.
+  1371|* Gestionar fallos.
+  1372|* Aplicar límites.
+  1373|* Medir consumo.
+  1374|* Utilizar fallback.
+  1375|* Respetar presupuesto.
+  1376|
+  1377|Plataforma
+  1378|
+  1379|* Registro.
+  1380|* Login.
+  1381|* Logout.
+  1382|* Recuperación.
+  1383|* Navegación.
+  1384|* Responsive.
+  1385|* Persistencia.
+  1386|* Seguridad.
+  1387|* Manejo de errores.
+  1388|
+  1389|Si una prueba falla, corrige el problema y vuelve a probar.
+  1390|
+  1391|No ocultes fallos.
+  1392|
+  1393|⸻
+  1394|
+  1395|22. LIBERTAD CREATIVA Y TÉCNICA
+  1396|
+  1397|Quiero insistir en algo:
+  1398|
+  1399|No quiero dirigir cada decisión técnica.
+  1400|
+  1401|Tienes libertad para:
+  1402|
+  1403|* Elegir tecnologías.
+  1404|* Crear herramientas auxiliares.
+  1405|* Instalar dependencias.
+  1406|* Crear servicios.
+  1407|* Diseñar la arquitectura.
+  1408|* Cambiar componentes.
+  1409|* Elegir proveedores.
+  1410|* Crear procesos automáticos.
+  1411|* Optimizar el rendimiento.
+  1412|* Reorganizar módulos.
+  1413|* Diseñar los paneles.
+  1414|* Añadir funcionalidades útiles.
+  1415|* Mejorar la experiencia.
+  1416|* Investigar soluciones alternativas.
+  1417|
+  1418|Si encuentras una solución mejor que la que he descrito, puedes utilizarla.
+  1419|
+  1420|Si consideras que alguna característica debe implementarse de otra forma, hazlo.
+  1421|
+  1422|Si una tecnología no es adecuada, sustitúyela.
+  1423|
+  1424|Si una API es demasiado cara, busca alternativas.
+  1425|
+  1426|Si una función no puede implementarse correctamente, explícame por qué y propón una alternativa.
+  1427|
+  1428|No quiero que te quedes bloqueado esperando decisiones que puedes tomar tú.
+  1429|
+  1430|Quiero que actúes como arquitecto, desarrollador principal, diseñador de producto, ingeniero backend, ingeniero frontend y responsable de pruebas de PIKAS.
+  1431|
+  1432|⸻
+  1433|
+  1434|23. REGLAS DE TRABAJO
+  1435|
+  1436|1. Trabaja sobre el proyecto de PIKAS que te he proporcionado.
+  1437|2. Inspecciona primero todos los archivos y la estructura existente.
+  1438|3. No asumas que conoces el contenido del proyecto.
+  1439|4. No sobrescribas trabajo útil sin comprobarlo.
+  1440|5. No crees sistemas duplicados innecesariamente.
+  1441|6. No dejes botones decorativos que aparenten funcionar.
+  1442|7. No utilices datos falsos como si fueran reales.
+  1443|8. No escondas errores.
+  1444|9. No dejes claves API en el frontend.
+  1445|10. No dependas de localStorage para datos financieros importantes.
+  1446|11. No utilices dinero real.
+  1447|12. No conectes wallets.
+  1448|13. No implementes ejecución financiera real.
+  1449|14. Documenta las decisiones importantes.
+  1450|15. Prueba las funcionalidades.
+  1451|16. Mantén una arquitectura mantenible.
+  1452|17. Optimiza el consumo de APIs.
+  1453|18. Controla los gastos externos.
+  1454|19. Prioriza el funcionamiento móvil.
+  1455|20. Mantén la plataforma preparada para crecer.
+  1456|
+  1457|Puedes trabajar de forma autónoma y tomar decisiones sin solicitar aprobación para cada detalle técnico.
+  1458|
+  1459|Solo debes detenerte y pedirme autorización cuando:
+  1460|
+  1461|* Necesites contratar o pagar un servicio.
+  1462|* Necesites una credencial o clave que todavía no he proporcionado.
+  1463|* Una acción pueda borrar datos o destruir trabajo existente.
+  1464|* Necesites cambiar permisos importantes.
+  1465|* Exista un riesgo de seguridad significativo.
+  1466|* Una decisión implique utilizar dinero real o ejecutar operaciones reales, algo que en este proyecto no está permitido.
+  1467|
+  1468|⸻
+  1469|
+  1470|24. RESULTADO FINAL ESPERADO
+  1471|
+  1472|Quiero terminar con una plataforma llamada PIKAS que incluya:
+  1473|
+  1474|* Dashboard profesional.
+  1475|* Market Battle funcional.
+  1476|* Paper Trading funcional.
+  1477|* Motor financiero robusto.
+  1478|* Cuentas virtuales persistentes.
+  1479|* Gráficos de mercado.
+  1480|* Historial de operaciones.
+  1481|* AI Arena.
+  1482|* Agentes de IA independientes.
+  1483|* AI Advisor.
+  1484|* PIKAS AI.
+  1485|* AI Router.
+  1486|* Optimización de tokens.
+  1487|* Integración de diferentes modelos.
+  1488|* Rankings.
+  1489|* Perfiles.
+  1490|* Notificaciones.
+  1491|* Panel de administración.
+  1492|* Seguridad.
+  1493|* Base de datos.
+  1494|* Monitorización.
+  1495|* Diseño responsive.
+  1496|* Experiencia PWA si resulta conveniente.
+  1497|
+  1498|No quiero una colección de pantallas independientes.
+  1499|
+  1500|Quiero un ecosistema integrado en el que todos los módulos compartan información de forma segura y coherente.
+  1501|
+  1502|Por ejemplo:
+  1503|
+  1504|PIKAS AI puede consultar Paper Trading, pedir análisis a AI Advisor, comparar las decisiones de AI Arena y crear una alerta.
+  1505|
+  1506|AI Arena puede utilizar el motor de Paper Trading para ejecutar sus operaciones virtuales.
+  1507|
+  1508|Market Battle puede alimentar estadísticas y rankings.
+  1509|
+  1510|AI Router puede gestionar todas las llamadas a modelos.
+  1511|
+  1512|Todo debe formar parte de una arquitectura coherente.
+  1513|
+  1514|⸻
+  1515|
+  1516|25. PRIMERA ACCIÓN
+  1517|
+  1518|Empieza ahora.
+  1519|
+  1520|Primero inspecciona el proyecto completo al que tienes acceso.
+  1521|
+  1522|Después:
+  1523|
+  1524|1. Identifica la tecnología existente.
+  1525|2. Identifica los servicios disponibles.
+  1526|3. Comprueba la base de datos.
+  1527|4. Comprueba el sistema de despliegue.
+  1528|5. Detecta problemas existentes.
+  1529|6. Diseña la arquitectura definitiva.
+  1530|7. Elige las herramientas y aplicaciones que utilizarás.
+  1531|8. Comienza a construir.
+  1532|
+  1533|No quiero que te limites a devolverme un documento de planificación.
+  1534|
+  1535|Quiero que empieces a desarrollar la aplicación real.
+  1536|
+  1537|Puedes trabajar por etapas, pero debes avanzar hasta completar cada una y probarla antes de darla por finalizada.
+  1538|
+  1539|Cuando termines cada etapa, presenta un resumen con:
+  1540|
+  1541|* Qué has construido.
+  1542|* Qué archivos has creado o modificado.
+  1543|* Qué funcionalidades están operativas.
+  1544|* Qué pruebas has ejecutado.
+  1545|* Qué resultados has obtenido.
+  1546|* Qué falta.
+  1547|* Qué decisiones técnicas has tomado.
+  1548|
+  1549|Si puedes continuar sin mi intervención, continúa.
+  1550|
+  1551|Tu misión es convertir PIKAS en una plataforma completa, funcional, profesional y preparada para crecer.
+  1552|
+  1553|No quiero simplemente que me enseñes cómo hacerla.
+  1554|
+  1555|Quiero que la construyas.
