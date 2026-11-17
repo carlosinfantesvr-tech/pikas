@@ -106,7 +106,11 @@ h1 { font-size: 32px; letter-spacing: -0.03em; }
 .ticker { overflow: hidden; border-bottom: 1px solid var(--line); background: rgba(16, 19, 26, .9); }
 .ticker-track { display: flex; gap: 22px; width: max-content; padding: 8px 0; animation: ticker 36s linear infinite; }
 .ticker-still .ticker-track { animation: none; flex-wrap: wrap; width: auto; padding: 8px 16px; }
-.ticker span { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+.brand-lockup { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.brand-mark { width: 22px; height: 22px; display: inline-block; flex: 0 0 22px; object-fit: contain; }
+.brand-mark.mono { background: var(--text); mask-repeat: no-repeat; mask-position: center; mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: contain; }
+.mark-fallback { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; color: #fff; font-size: 10px; font-weight: 750; flex: 0 0 22px; }
+.ticker span { font-family: var(--mono); font-size: 13px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
 .ticker em { font-style: normal; margin-left: 6px; }
 @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 70; overflow: hidden; }

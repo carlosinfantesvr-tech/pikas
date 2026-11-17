@@ -7,6 +7,7 @@ import { api } from "./api";
 import { PikasChat, PikasMark } from "./pikas-chat";
 import { AnimatedNumber, MotionProvider, PriceText, Skeleton, ToastProvider, useReduced, useToast } from "./ui";
 import { money, signed } from "@/lib/format";
+import { AssetMark } from "./marks";
 
 export interface Quote {
   symbol: string;
@@ -63,7 +64,7 @@ function PriceTape({ quotes }: { quotes: Quote[] }) {
       <div className="ticker-track">
         {loop.map((quote, index) => (
           <span key={`${quote.symbol}-${index}`}>
-            {quote.symbol} <PriceText value={quote.price} />
+            <AssetMark symbol={quote.symbol} /> {quote.symbol} <PriceText value={quote.price} />
             <em className={Number(quote.changeValue) < 0 ? "down" : "up"}>{quote.changeValue == null ? "" : ` ${Number(quote.changeValue).toFixed(2)}%`}</em>
           </span>
         ))}

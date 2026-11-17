@@ -7,6 +7,7 @@ import { useApp } from "./shell";
 import { AnimatedNumber, ScreenSkeleton, useToast } from "./ui";
 import { money, pct, signed, when } from "@/lib/format";
 import { ASSET_SYMBOLS } from "@/lib/symbols";
+import { AiMark, AssetMark } from "./marks";
 
 export function HistoryScreen() {
   const [trades, setTrades] = useState<Array<Record<string, unknown>> | null>(null);
@@ -21,7 +22,7 @@ export function HistoryScreen() {
   return (
     <div className="grid">
       <h1>Historial</h1>
-      <div className="tabs" role="tablist" aria-label="Filtrar historial"><button className={!symbol ? "chip on" : "chip"} type="button" onClick={() => setSymbol("")}>Todos</button>{ASSET_SYMBOLS.map((item) => <button key={item} className={symbol === item ? "chip on" : "chip"} type="button" onClick={() => setSymbol(item)}>{item}</button>)}</div>
+      <div className="tabs" role="tablist" aria-label="Filtrar historial"><button className={!symbol ? "chip on" : "chip"} type="button" onClick={() => setSymbol("")}>Todos</button>{ASSET_SYMBOLS.map((item) => <button key={item} className={symbol === item ? "chip on" : "chip"} type="button" onClick={() => setSymbol(item)}><AssetMark symbol={item} /> {item}</button>)}</div>
       {error ? <p className="status-bad" role="alert">{error}</p> : null}
       {trades === null && !error ? <ScreenSkeleton /> : null}
       <div className="table-wrap panel">
@@ -172,7 +173,7 @@ export function RouterScreen() {
       <div className="cards">
         {providers.map((provider) => (
           <article className="card" key={String(provider.id)}>
-            <h3>{String(provider.label)}</h3>
+            <h3><AiMark id={String(provider.id)} /> {String(provider.label)}</h3>
             <p>{provider.configured ? (provider.healthy ? "Configurado y disponible" : "En pausa") : "No configurado"}</p>
             <p className="fine">{provider.free ? "Prioridad gratuita" : "De pago, apagado salvo AI_ALLOW_PAID"} · prioridad {String(provider.priority)}</p>
             <p className="fine">{String(provider.cheap)}{provider.strong !== provider.cheap ? ` / ${String(provider.strong)}` : ""}</p>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "./api";
 import { AnimatedNumber, ScreenSkeleton } from "./ui";
+import { AiMark } from "./marks";
 
 interface Progress {
   xp: number;
@@ -54,7 +55,7 @@ export function ProgresoScreen() {
             {data.compare.length === 0 ? <p className="empty">Hace falta una ronda resuelta en la que hayas votado y una IA también. Si ninguna respondió, no se inventa el duelo.</p> : (
               <ul className="stack">
                 {data.compare.map((row) => (
-                  <li key={row.actor}>{row.name}: tú {row.user.toFixed(2)} · IA {row.other.toFixed(2)} · {row.rounds} ronda{row.rounds === 1 ? "" : "s"}</li>
+                  <li key={row.actor}><AiMark id={row.name} /> {row.name}: tú {row.user.toFixed(2)} · IA {row.other.toFixed(2)} · {row.rounds} ronda{row.rounds === 1 ? "" : "s"}</li>
                 ))}
               </ul>
             )}
@@ -84,7 +85,7 @@ export function IasScreen() {
         {(rows || []).map((row) => (
           <article className="card" key={row.id}>
             <span className="kicker">{row.free ? "Capa gratuita o de prototipo" : "De pago, si se permite"}</span>
-            <h2>{row.label}</h2>
+            <h2><AiMark id={row.id} /> {row.label}</h2>
             <p className={row.configured ? "up" : "fine"}>{row.configured ? "Configurado" : "No configurado"}</p>
             <p className="fine">{row.scored ? `${row.scored} rondas con puntos · ${row.points}` : "Sin rondas resueltas de este motor."}</p>
           </article>

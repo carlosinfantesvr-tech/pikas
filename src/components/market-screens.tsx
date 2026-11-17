@@ -11,6 +11,7 @@ import { AnimatedNumber, PriceText, Skeleton, useToast } from "./ui";
 import { ago, money, pct, signed } from "@/lib/format";
 import { liquidationPrice } from "@/engine/trading";
 import { ASSET_SYMBOLS } from "@/lib/symbols";
+import { AssetMark } from "./marks";
 
 export function LoginScreen() {
   const router = useRouter();
@@ -177,7 +178,7 @@ export function DashboardScreen() {
         {ordered.map((quote) => (
           <article className="card quote" key={quote.symbol}>
             <header>
-              <strong>{quote.symbol}</strong>
+              <strong><AssetMark symbol={quote.symbol} /> {quote.symbol}</strong>
               <button className={favorites.has(quote.symbol) ? "btn btn-secondary" : "btn"} type="button" aria-pressed={favorites.has(quote.symbol)} onClick={async () => {
                 const next = new Set(favorites);
                 if (next.has(quote.symbol)) next.delete(quote.symbol); else next.add(quote.symbol);
@@ -234,12 +235,12 @@ export function TradingScreen() {
     <div className="grid">
       <div className="row">
         <h1>Paper trading</h1>
-        <div className="tabs" role="tablist" aria-label="Activo">{ASSET_SYMBOLS.map((item) => <button key={item} role="tab" aria-selected={symbol === item} className={symbol === item ? "chip on" : "chip"} type="button" onClick={() => setSymbol(item)}>{item}</button>)}</div>
+        <div className="tabs" role="tablist" aria-label="Activo">{ASSET_SYMBOLS.map((item) => <button key={item} role="tab" aria-selected={symbol === item} className={symbol === item ? "chip on" : "chip"} type="button" onClick={() => setSymbol(item)}><AssetMark symbol={item} /> {item}</button>)}</div>
         <div className="tabs">{["1m", "5m", "15m", "1h", "1d"].map((item) => <button key={item} className={interval === item ? "chip on" : "chip"} type="button" onClick={() => setIntervalValue(item)}>{item}</button>)}</div>
       </div>
       <div className="layout-trade">
         <section className="panel">
-          <div className="row"><strong className="price"><PriceText value={quote?.price ?? null} /></strong><span className="fine">{quote?.source || "sin fuente"} · {quote?.status} · {ago(quote?.providerTs || quote?.fetchedAt || null)}</span></div>
+          <div className="row"><AssetMark symbol={symbol} /><strong className="price"><PriceText value={quote?.price ?? null} /></strong><span className="fine">{quote?.source || "sin fuente"} · {quote?.status} · {ago(quote?.providerTs || quote?.fetchedAt || null)}</span></div>
           {note ? <p className="fine">{note}</p> : null}
           <CandleChart candles={candles} overlays={overlays} />
         </section>

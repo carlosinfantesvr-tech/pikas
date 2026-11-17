@@ -6,6 +6,7 @@ import { useApp } from "./shell";
 import { AnimatedNumber, FlipList, ScreenSkeleton, Skeleton, useToast } from "./ui";
 import { money, pct, when } from "@/lib/format";
 import { ASSETS } from "@/lib/symbols";
+import { AiMark, AssetMark } from "./marks";
 import { PikasChat } from "./pikas-chat";
 
 export function BattleScreen() {
@@ -68,7 +69,7 @@ export function ArenaScreen() {
     <div className="grid">
       <div><p className="kicker">AI Arena</p><h1>Mismas reglas, cuentas separadas</h1><p className="muted">Cada motor con su variable de entorno es un competidor con cuenta simulada propia. El mismo contexto para todos. Sin clave: no configurado y sin operaciones. El baseline es una regla, no un modelo.</p></div>
       <div className="row">
-        {ASSETS.filter((asset) => asset.kind === "crypto").map((asset) => <button key={asset.symbol} className={symbol === asset.symbol ? "chip on" : "chip"} type="button" onClick={() => setSymbol(asset.symbol)}>{asset.symbol}</button>)}
+        {ASSETS.filter((asset) => asset.kind === "crypto").map((asset) => <button key={asset.symbol} className={symbol === asset.symbol ? "chip on" : "chip"} type="button" onClick={() => setSymbol(asset.symbol)}><AssetMark symbol={asset.symbol} /> {asset.symbol}</button>)}
         <button className="btn btn-secondary" type="button" onClick={async () => {
           try { await api("/api/arena/run", { method: "POST", body: JSON.stringify({ symbol, mode: "competition" }) }); toast({ title: "Ciclo registrado", tone: "ok" }); await load(); }
           catch (err) { toast({ title: "No se ejecutó", body: err instanceof Error ? err.message : "", tone: "danger" }); }
@@ -77,7 +78,7 @@ export function ArenaScreen() {
       <div className="cards">
         {(board?.agents || []).map((agent) => (
           <article className="card" key={String(agent.id)}>
-            <h3>{String(agent.name)}</h3>
+            <h3><AiMark id={String(agent.provider || agent.slug || agent.name)} /> {String(agent.name)}</h3>
             <p className="fine">{String(agent.description)}</p>
             <p>{agent.kind === "rules" ? "Reglas locales" : agent.configured ? "Configurado" : "No configurado"}</p>
           </article>
@@ -106,7 +107,7 @@ export function AdvisorScreen() {
   return (
     <div className="grid">
       <div><p className="kicker">AI Advisor</p><h1>Lectura del mercado</h1></div>
-      <div className="tabs" role="tablist" aria-label="Activo del análisis">{ASSETS.map((asset) => <button key={asset.symbol} role="tab" aria-selected={symbol === asset.symbol} className={symbol === asset.symbol ? "chip on" : "chip"} type="button" onClick={() => setSymbol(asset.symbol)}>{asset.symbol}</button>)}</div>
+      <div className="tabs" role="tablist" aria-label="Activo del análisis">{ASSETS.map((asset) => <button key={asset.symbol} role="tab" aria-selected={symbol === asset.symbol} className={symbol === asset.symbol ? "chip on" : "chip"} type="button" onClick={() => setSymbol(asset.symbol)}><AssetMark symbol={asset.symbol} /> {asset.symbol}</button>)}</div>
       <article className="panel">
         <p className="fine">{String(data?.label || "")} Fuente: {String(data?.source || "n/d")}</p>
         {!data && !error ? <ScreenSkeleton /> : null}
@@ -193,7 +194,8 @@ export function RankingsScreen() {
         <h2>Arena</h2>
         {(data?.arena || []).map((row) => {
           const agent = row.agent as { name?: string };
-          return <article className="card" key={String(agent?.name)}><strong>{agent?.name}</strong><p>{row.score == null ? String(row.reason) : `Puntuación ${row.score}`}</p><p className="fine">{String(row.reason || "")}</p></article>;
+          const slug = String((row.agent as { provider?: string; slug?: string }).provider || (row.agent as { slug?: string }).slug || agent?.name || "");
+          return <article className="card" key={String(agent?.name)}><strong><AiMark id={slug} /> {agent?.name}</strong><p>{row.score == null ? String(row.reason) : `Puntuación ${row.score}`}</p><p className="fine">{String(row.reason || "")}</p></article>;
         })}
       </section>
     </div>
