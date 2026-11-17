@@ -22,6 +22,8 @@ export const ASSETS: Asset[] = [
   { symbol: "MSFT", name: "Microsoft", kind: "equity", yahoo: "MSFT" },
   { symbol: "NVDA", name: "NVIDIA", kind: "equity", yahoo: "NVDA" },
   { symbol: "SPX", name: "S&P 500", kind: "index", yahoo: "^GSPC" },
+  { symbol: "ORO", name: "Oro", kind: "index", yahoo: "GC=F" },
+  { symbol: "NDX", name: "Nasdaq 100", kind: "index", yahoo: "^NDX" },
 ];
 
 export const ASSET_SYMBOLS = ASSETS.map((asset) => asset.symbol);

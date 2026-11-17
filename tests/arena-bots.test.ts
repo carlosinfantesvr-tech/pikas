@@ -24,7 +24,7 @@ describe("bots de la arena", () => {
   it("muestra cada motor gratis como no configurado y no le abre cuenta", async () => {
     const db = await createMemoryDb();
     const board = await arenaBoard(db);
-    for (const provider of ["gemini", "groq", "openrouter", "cloudflare", "huggingface", "mistral", "ollama"]) {
+    for (const provider of ["gemini", "groq", "openrouter", "cloudflare", "huggingface", "sambanova", "nvidia", "mistral", "ollama"]) {
       const rows = board.agents.filter((item) => item.provider === provider);
       expect(rows.length, provider).toBeGreaterThan(0);
       expect(rows.every((item) => item.configured === false && item.account_id == null)).toBe(true);

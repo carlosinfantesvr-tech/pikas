@@ -13,8 +13,8 @@ export function middleware(req: NextRequest) {
   ) {
     return NextResponse.next();
   }
-  const publicPage = ["/login", "/registro", "/recuperar"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
-  const publicApi = pathname === "/api/health" || pathname.startsWith("/api/auth/") || pathname === "/api/cron/tick";
+  const publicPage = ["/login", "/registro", "/recuperar", "/verificar"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
+  const publicApi = pathname === "/api/health" || pathname.startsWith("/api/auth/") || pathname === "/api/cron/tick" || pathname.startsWith("/api/public/");
   if (publicPage || publicApi) return NextResponse.next();
   if (!req.cookies.get(COOKIE)) {
     if (pathname.startsWith("/api/")) {

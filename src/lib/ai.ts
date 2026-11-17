@@ -38,6 +38,8 @@ const PROVIDERS: ProviderSpec[] = [
   { id: "openrouter", label: "OpenRouter", priority: 40, free: true, cheap: "openrouter/free", strong: "openrouter/free", inCheap: 0, outCheap: 0, inStrong: 0, outStrong: 0, configured: () => Boolean(process.env.OPENROUTER_API_KEY) },
   { id: "cloudflare", label: "Cloudflare Workers AI", priority: 50, free: true, cheap: "@cf/meta/llama-3.1-8b-instruct", strong: "@cf/meta/llama-3.1-8b-instruct", inCheap: 0, outCheap: 0, inStrong: 0, outStrong: 0, configured: () => Boolean(process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN) },
   { id: "huggingface", label: "Hugging Face", priority: 60, free: true, cheap: "Qwen/Qwen2.5-7B-Instruct", strong: "Qwen/Qwen2.5-7B-Instruct", inCheap: 0, outCheap: 0, inStrong: 0, outStrong: 0, configured: () => Boolean(process.env.HF_TOKEN || process.env.HUGGINGFACE_API_KEY) },
+  { id: "sambanova", label: "SambaNova", priority: 65, free: true, cheap: "Meta-Llama-3.3-70B-Instruct", strong: "Meta-Llama-3.3-70B-Instruct", inCheap: 0, outCheap: 0, inStrong: 0, outStrong: 0, configured: () => Boolean(process.env.SAMBANOVA_API_KEY) },
+  { id: "nvidia", label: "NVIDIA NIM", priority: 68, free: true, cheap: "meta/llama-3.1-8b-instruct", strong: "meta/llama-3.3-70b-instruct", inCheap: 0, outCheap: 0, inStrong: 0, outStrong: 0, configured: () => Boolean(process.env.NVIDIA_API_KEY) },
   { id: "mistral", label: "Mistral", priority: 70, free: true, cheap: "mistral-small-latest", strong: "mistral-small-latest", inCheap: 0, outCheap: 0, inStrong: 0, outStrong: 0, configured: () => Boolean(process.env.MISTRAL_API_KEY) },
   { id: "cerebras", label: "Cerebras", priority: 80, free: false, cheap: "gpt-oss-120b", strong: "gpt-oss-120b", inCheap: 0, outCheap: 0, inStrong: 0, outStrong: 0, configured: () => Boolean(process.env.CEREBRAS_API_KEY) },
   { id: "openai", label: "OpenAI", priority: 200, free: false, cheap: "gpt-4o-mini", strong: "gpt-4o", inCheap: 0.15, outCheap: 0.6, inStrong: 2.5, outStrong: 10, configured: () => Boolean(process.env.OPENAI_API_KEY) && process.env.AI_ALLOW_PAID === "true" },
@@ -177,6 +179,8 @@ const OPENAI_COMPAT: Record<string, { url: string; key: () => string }> = {
   cerebras: { url: "https://api.cerebras.ai/v1/chat/completions", key: () => process.env.CEREBRAS_API_KEY || "" },
   mistral: { url: "https://api.mistral.ai/v1/chat/completions", key: () => process.env.MISTRAL_API_KEY || "" },
   huggingface: { url: "https://router.huggingface.co/v1/chat/completions", key: () => process.env.HF_TOKEN || process.env.HUGGINGFACE_API_KEY || "" },
+  sambanova: { url: "https://api.sambanova.ai/v1/chat/completions", key: () => process.env.SAMBANOVA_API_KEY || "" },
+  nvidia: { url: "https://integrate.api.nvidia.com/v1/chat/completions", key: () => process.env.NVIDIA_API_KEY || "" },
 };
 
 export async function streamModel(input: {

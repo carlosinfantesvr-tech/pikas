@@ -45,7 +45,8 @@ export function LoginScreen() {
       <label className="field">Contraseña<input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required autoComplete="current-password" /></label>
       {error ? <p className="down">{error}</p> : null}
       <button className="btn btn-primary" type="submit">Entrar</button>
-      {google ? <a className="btn" href="/api/auth/google/start">Continuar con Google</a> : <p className="fine">Inicio con Google no configurado</p>}
+      <button className="btn" type="button" disabled={google !== true} aria-describedby={google === false ? "google-off" : undefined} onClick={() => { if (google) window.location.href = "/api/auth/google/start"; }}>Continuar con Google</button>
+      {google === false ? <p id="google-off" className="fine">Inicio con Google no configurado. Faltan GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET en el servidor.</p> : null}
       <p className="fine"><Link href="/registro">Crear cuenta con invitación</Link> · <Link href="/recuperar">Recuperar acceso</Link></p>
     </form>
   );
@@ -75,7 +76,8 @@ export function RegisterScreen() {
       ))}
       {error ? <p className="down">{error}</p> : null}
       <button className="btn btn-primary" type="submit">Registrarme</button>
-      {google ? <a className="btn" href={`/api/auth/google/start?invite=${encodeURIComponent(form.inviteCode)}`}>Continuar con Google</a> : <p className="fine">Inicio con Google no configurado</p>}
+      <button className="btn" type="button" disabled={!google} aria-describedby={google ? undefined : "google-off-reg"} onClick={() => { if (google) window.location.href = `/api/auth/google/start?invite=${encodeURIComponent(form.inviteCode)}`; }}>Continuar con Google</button>
+      {!google ? <p id="google-off-reg" className="fine">Inicio con Google no configurado. Faltan GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET en el servidor.</p> : null}
       <Link href="/login">Ya tengo cuenta</Link>
     </form>
   );
@@ -197,14 +199,17 @@ export function TradingScreen() {
             await refresh();
           } catch (err) { toast({ title: "No se abrió", body: err instanceof Error ? err.message : "", tone: "danger" }); }
         }}>
-          <div className="chips">{(["long", "short"] as const).map((item) => <button type="button" key={item} className={side === item ? "chip on" : "chip"} onClick={() => setSide(item)}>{item === "long" ? "Largo" : "Corto"}</button>)}</div>
+          <div className="row">
+            <button type="button" className={side === "long" ? "btn btn-up" : "btn"} aria-pressed={side === "long"} onClick={() => setSide("long")}>▲ Largo</button>
+            <button type="button" className={side === "short" ? "btn btn-down" : "btn"} aria-pressed={side === "short"} onClick={() => setSide("short")}>▼ Corto</button>
+          </div>
           <div className="chips">{[1, 2, 3, 5, 10, 15, 20].map((item) => <button type="button" key={item} className={leverage === item ? "chip on" : "chip"} onClick={() => setLeverage(item)}>{item}x</button>)}</div>
           <p className="fine">A {leverage}x el precio de liquidación aproximado es {liq ? money(liq) : "—"}. El apalancamiento acerca ese nivel. Margen aislado.</p>
           <label className="field">Margen USDT<input value={margin} onChange={(e) => setMargin(e.target.value)} inputMode="decimal" /></label>
           <label className="field">Tipo<select value={type} onChange={(e) => setType(e.target.value as typeof type)}><option value="market">Market</option><option value="limit">Limit</option><option value="stop_market">Stop market</option></select></label>
           {type === "limit" ? <label className="field">Precio límite<input value={limitPrice} onChange={(e) => setLimitPrice(e.target.value)} /></label> : null}
           {type === "stop_market" ? <label className="field">Precio stop<input value={stopPrice} onChange={(e) => setStopPrice(e.target.value)} /></label> : null}
-          <button className="btn btn-primary" type="submit" disabled={!quote?.executable}>Enviar orden simulada</button>
+          <button className={side === "long" ? "btn btn-up" : "btn btn-down"} type="submit" disabled={!quote?.executable}>{side === "long" ? "▲ Comprar simulado" : "▼ Vender simulado"}</button>
           {!quote?.executable ? <p className="status-bad">El precio no es ejecutable. No se finge la ejecución.</p> : null}
         </form>
       </div>
@@ -226,8 +231,8 @@ export function TradingScreen() {
                 <div><dt>Fuente</dt><dd>{String(position.markSource || "—")}</dd></div>
               </dl>
               <div className="row">
-                <button className="btn" type="button" onClick={async () => { await api("/api/trading/close", { method: "POST", body: JSON.stringify({ positionId: position.id, percent: 50 }) }); await refresh(); }}>Cerrar 50%</button>
-                <button className="btn" type="button" onClick={async () => { await api("/api/trading/close", { method: "POST", body: JSON.stringify({ positionId: position.id, percent: 100 }) }); await refresh(); }}>Cerrar</button>
+                <button className="btn btn-danger" type="button" onClick={async () => { if (!confirm("¿Cerrar el 50% de esta posición simulada?")) return; await api("/api/trading/close", { method: "POST", body: JSON.stringify({ positionId: position.id, percent: 50 }) }); await refresh(); }}>Cerrar 50%</button>
+                <button className="btn btn-danger" type="button" onClick={async () => { if (!confirm("¿Cerrar toda la posición simulada?")) return; await api("/api/trading/close", { method: "POST", body: JSON.stringify({ positionId: position.id, percent: 100 }) }); await refresh(); }}>Cerrar todo</button>
               </div>
               <TpSl positionId={String(position.id)} onDone={refresh} />
             </article>

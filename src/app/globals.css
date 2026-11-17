@@ -79,11 +79,25 @@ main { padding: 18px 18px 128px; }
 h1, h2, h3 { margin: 0 0 8px; font-weight: 620; }
 h1 { font-size: 32px; letter-spacing: -0.03em; }
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.btn, .chip { border: 1px solid var(--line); background: var(--bg-3); border-radius: 12px; padding: 10px 14px; min-height: 44px; transition: transform .15s, background .15s, border-color .15s; }
+.btn, .chip { border: 1px solid var(--line); background: var(--bg-3); border-radius: 12px; padding: 12px 16px; min-height: 48px; font-weight: 650; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .15s, background .15s, border-color .15s; }
 .btn:hover, .chip:hover { border-color: rgba(255,255,255,.2); }
 .btn:active { transform: translateY(1px) scale(.98); }
-.btn-primary { background: linear-gradient(180deg, #ffd36a, var(--amber)); color: #1b1404; border-color: transparent; font-weight: 700; }
-.btn.ghost { background: transparent; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn-primary { background: linear-gradient(180deg, #ffd36a, var(--amber)); color: #1b1404; border-color: transparent; font-weight: 750; }
+.btn-up { background: #0f7a4a; color: #f4fff8; border-color: transparent; }
+.btn-down { background: #b4233a; color: #fff6f7; border-color: transparent; }
+.btn-secondary { background: #3d2f86; color: #f6f3ff; border-color: transparent; }
+.btn-danger { background: transparent; color: #ffd5db; border-color: #ff8b9a; }
+.btn.ghost { background: transparent; color: var(--text); }
+.ticker { overflow: hidden; border-bottom: 1px solid var(--line); background: rgba(16, 19, 26, .9); }
+.ticker-track { display: flex; gap: 22px; width: max-content; padding: 8px 0; animation: ticker 36s linear infinite; }
+.ticker-still .ticker-track { animation: none; flex-wrap: wrap; width: auto; padding: 8px 16px; }
+.ticker span { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+.ticker em { font-style: normal; margin-left: 6px; }
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 70; overflow: hidden; }
+.confetti i { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; animation: fall 1.4s ease-in forwards; }
+@keyframes fall { to { transform: translateY(100vh) rotate(220deg); opacity: .2; } }
 .chip.on { border-color: var(--cyan); color: var(--cyan); }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field input, .field select, .field textarea, .composer textarea { width: 100%; background: #0c0e13; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
@@ -125,6 +139,9 @@ th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--lin
 .pikas-mark.lg { width: 84px; height: 84px; }
 .pikas-mark.is-ai { padding: 3px; border-radius: 14px; background: radial-gradient(circle at 50% 40%, rgba(103,232,249,.22), transparent 70%); box-shadow: inset 0 0 0 1px rgba(103,232,249,.45); }
 .pikas-mark.is-live { color: var(--cyan); animation: glow 1.6s ease-in-out infinite; }
+.thermo { position: relative; height: 10px; border-radius: 99px; background: linear-gradient(90deg, #e11d48, #f5b942 55%, #34d399); }
+.thermo i { position: absolute; top: -4px; width: 3px; height: 18px; background: #fff; border-radius: 2px; }
+.stack { display: grid; gap: 8px; margin: 0; padding-left: 18px; }
 @keyframes glow { 50% { filter: drop-shadow(0 0 8px rgba(103,232,249,.8)); } }
 .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 30; display: grid; align-items: end; }
 .sheet, .drawer { background: #12151c; border: 1px solid var(--line); border-radius: 22px 22px 0 0; padding: 18px; display: grid; gap: 10px; animation: sheetIn .28s ease; max-height: 88dvh; overflow: auto; }
@@ -201,8 +218,10 @@ th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--lin
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
   .card:hover, .btn:active { transform: none !important; }
+  .confetti { display: none; }
 }
 html[data-motion="off"] *, html[data-motion="off"] *::before, html[data-motion="off"] *::after {
   animation: none !important; transition: none !important;
 }
+html[data-motion="off"] .confetti { display: none; }
 html[data-motion="off"] .card:hover, html[data-motion="off"] .btn:active { transform: none !important; }

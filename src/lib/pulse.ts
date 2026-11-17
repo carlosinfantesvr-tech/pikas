@@ -2,6 +2,7 @@ import { advanceBattles } from "./battle";
 import type { Db } from "./db";
 import { logEvent } from "./db";
 import { loadCandles, listQuotes, refreshMarket, type CandleDraft } from "./market";
+import { dueFreeSymbols, maybeDailyBrief, refreshSentiment, settleFree, tickRondas } from "./ronda";
 import { catchUpAccount, type QuoteView } from "./trading";
 
 function asQuotes(rows: Awaited<ReturnType<typeof listQuotes>>): QuoteView[] {
@@ -95,6 +96,27 @@ export async function runPulse(db: Db, fetchImpl: typeof fetch = fetch, now = Da
       }
       return (candleCache.get(symbol) || []).filter((candle) => candle.ts >= from && candle.ts <= to);
     }, now);
+    const rondaSymbol = process.env.PIKAS_RONDA_SYMBOL || "BTC";
+    if (!candleCache.has(rondaSymbol)) {
+      const loaded = await loadCandles(db, rondaSymbol, "1m", fetchImpl);
+      candleCache.set(rondaSymbol, loaded.candles);
+    }
+    const rondaQuote = listed.find((item) => item.symbol === rondaSymbol);
+    await tickRondas(db, {
+      now,
+      quote: rondaQuote?.price ? { price: rondaQuote.price, source: rondaQuote.source || "sin fuente", executable: rondaQuote.executable } : null,
+      candles: candleCache.get(rondaSymbol) || [],
+      symbol: rondaSymbol,
+    });
+    for (const symbol of await dueFreeSymbols(db, now)) {
+      if (!candleCache.has(symbol)) {
+        const loaded = await loadCandles(db, symbol, "1m", fetchImpl);
+        candleCache.set(symbol, loaded.candles);
+      }
+      await settleFree(db, symbol, candleCache.get(symbol) || [], now);
+    }
+    await refreshSentiment(db, fetchImpl, now);
+    await maybeDailyBrief(db, now);
     await evaluateAlerts(db, listed, now);
     await db.query("update pulse_lock set locked_until = 0, last_run_at = $1, last_error = null where id = 1", [now]);
     if (market.failed.length) await logEvent(db, "warn", "market", "Alguna fuente de mercado falló", { failed: market.failed.slice(0, 8) });

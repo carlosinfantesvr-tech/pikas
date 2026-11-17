@@ -53,34 +53,42 @@ Para que siga corriendo con la app cerrada, puedes usar un cron gratuito externo
 
 No prometas notificaciones push: el aviso vive dentro de la app.
 
-## 5. Google, si lo quieres
+## 5. Google, en https://pikas.vercel.app
 
-Sin `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` el botón no sale y la API responde que el inicio con Google no está configurado. No se simula el login.
+El botón **Continuar con Google** se ve siempre. Sin `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` queda desactivado y explica que falta la configuración. No se simula el login. El servidor guarda un `state` de un solo uso y un verificador PKCE (`S256`); Google devuelve el `code` y el intercambio exige ese verificador.
 
-1. Entra en [Google Cloud Console](https://console.cloud.google.com/).
-2. Crea un proyecto (puede llamarse PIKAS).
-3. **APIs y servicios → Pantalla de consentimiento de OAuth**.
-   - Tipo: Externo.
-   - Nombre: PIKAS.
-   - Correo de asistencia: el tuyo.
-   - Ámbitos: `openid`, `email`, `profile` (los básicos).
-   - Mientras la app esté en estado **Prueba**, añade en **Usuarios de prueba** cada Gmail que vaya a entrar.
-4. **APIs y servicios → Credenciales → Crear credenciales → ID de cliente de OAuth → Aplicación web**.
-5. Orígenes de JavaScript autorizados:
+1. Entra en [Google Cloud Console](https://console.cloud.google.com/) con la cuenta que administrará PIKAS.
+2. Arriba, **Seleccionar un proyecto → Proyecto nuevo**. Nombre: `PIKAS`. Crear.
+3. Menú **APIs y servicios → Pantalla de consentimiento de OAuth**.
+   - Tipo de usuario: **Externo**. Crear.
+   - Nombre de la aplicación: `PIKAS`.
+   - Correo de asistencia del usuario: el tuyo.
+   - Correo del desarrollador: el tuyo. Guardar y continuar.
+   - Ámbitos: **Añadir o quitar ámbitos** y marca `openid`, `.../auth/userinfo.email` y `.../auth/userinfo.profile`. Guardar y continuar.
+   - Usuarios de prueba: mientras el estado sea **Prueba**, pulsa **Add users** y añade cada Gmail que vaya a entrar. Guardar y continuar.
+4. Menú **APIs y servicios → Credenciales → Crear credenciales → ID de cliente de OAuth**.
+   - Tipo de aplicación: **Aplicación web**.
+   - Nombre: `PIKAS web`.
+5. **Orígenes de JavaScript autorizados**, uno por línea, sin barra final:
    - `http://localhost:3000`
-   - `https://tu-proyecto.vercel.app`
-6. URI de redirección autorizados, exactos:
+   - `https://pikas.vercel.app`
+6. **URI de redireccionamiento autorizados**, exactos, con la ruta completa:
    - `http://localhost:3000/api/auth/google/callback`
-   - `https://tu-proyecto.vercel.app/api/auth/google/callback`
-7. Copia el ID y el secreto a Vercel:
+   - `https://pikas.vercel.app/api/auth/google/callback`
+7. Crear. Copia el **ID de cliente** y el **secreto** a Vercel → Project → Settings → Environment Variables:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
+   - `APP_URL` = `https://pikas.vercel.app` (sin barra final)
    - `GOOGLE_ALLOWED_EMAILS` con los correos separados por comas, si quieres dejarlos pasar sin invitación.
-8. Redeploy.
+8. Redeploy (Deployments → ⋯ → Redeploy).
 
-Una cuenta nueva de Google solo entra si el correo está en esa lista, en la lista del panel Admin, o si el enlace de inicio lleva una invitación válida (`/api/auth/google/start?invite=CODIGO`). Quien ya tiene cuenta entra con el mismo correo verificado.
+Quién entra:
 
-El flujo real contra Google no se pudo probar en el desarrollo: no se creó ninguna credencial.
+- Si el correo verificado ya existe (por ejemplo el administrador creado con `BOOTSTRAP_ADMIN_EMAIL`), se vincula `google_sub` a esa cuenta y entra con el mismo usuario.
+- Si no existe, se crea sola cuando `INVITE_REQUIRED=false`, o cuando el correo está en `GOOGLE_ALLOWED_EMAILS` o en la lista del panel Admin, o cuando el enlace lleva una invitación válida (`/api/auth/google/start?invite=CODIGO`).
+- Si `INVITE_REQUIRED` no es `false` y no hay lista ni invitación, Google responde bien pero PIKAS rechaza el alta.
+
+El flujo real contra Google no se pudo probar aquí: no se creó ninguna credencial. Lo que sí está probado es el armado de la URL (state, PKCE, redirect de producción), el intercambio con un `fetch` simulado y la decisión de alta o vínculo.
 
 ## 6. Activar PIKAS AI
 
@@ -97,6 +105,8 @@ Estas notas salen de la documentación pública leída el 16 de noviembre de 202
 3. **OpenRouter** — modelos cuyo id acaba en `:free`, o el router `openrouter/free`. Cuenta en [openrouter.ai](https://openrouter.ai), clave en `OPENROUTER_API_KEY`. Sin créditos comprados, la propia documentación de límites habla de unas 20 peticiones por minuto y 50 al día. No pongas un modelo de pago en el fallback: se cobraría.
 4. **Cloudflare Workers AI** — asignación gratuita de neuronas. En el panel de Cloudflare crea un token con permiso de Workers AI y copia el Account ID. Variables: `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_API_TOKEN`. El modelo por defecto es `@cf/meta/llama-3.1-8b-instruct`. Confirma el id en el catálogo de Workers AI.
 5. **Hugging Face** — token en [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens), variable `HF_TOKEN`. La inferencia gratuita tiene cola y límites. El modelo por defecto puede no estar despierto; si falla, el router sigue.
+5b. **SambaNova** — cuenta en [cloud.sambanova.ai](https://cloud.sambanova.ai), clave en `SAMBANOVA_API_KEY`. La documentación de límites describe una capa gratuita sin método de pago: unos 20 peticiones y 200.000 tokens al día en modelos como `Meta-Llama-3.3-70B-Instruct`. El endpoint es `https://api.sambanova.ai/v1/chat/completions`. Sin clave, la ficha dice no configurado y no se llama.
+5c. **NVIDIA NIM** — clave gratis en [build.nvidia.com/settings](https://build.nvidia.com/settings), variable `NVIDIA_API_KEY`. NVIDIA dice que los modelos de ese catálogo se pueden prototipar sin tarjeta, con tope de peticiones (a menudo unas 40 por minuto) y sin facturación por token. No es un plan de producción. El endpoint es `https://integrate.api.nvidia.com/v1/chat/completions`. Modelos por defecto: `meta/llama-3.1-8b-instruct` y `meta/llama-3.3-70b-instruct`. Si el catálogo retira un id, cámbialo en `NVIDIA_MODEL_CHEAP` o `NVIDIA_MODEL_STRONG`.
 6. **Mistral** — clave en [console.mistral.ai](https://console.mistral.ai), variable `MISTRAL_API_KEY`. El plan Experiment ha cambiado varias veces. Confirma en la consola si tu clave es gratuita antes de dejarla activa.
 7. **Ollama** — en tu ordenador, sin clave, si el proceso de PIKAS puede abrir `OLLAMA_BASE_URL` (por ejemplo `http://127.0.0.1:11434`). En Vercel esa dirección es la del propio servidor, no tu portátil, así que no la pongas ahí salvo que apuntes a una URL alcanzable.
 8. **Cerebras** — no es un plan gratis permanente. La documentación del 16 nov 2026 dice que hay 5 USD de prueba al añadir una tarjeta, y que caducan a los 30 días. Solo pon `CEREBRAS_API_KEY` si aceptas eso.

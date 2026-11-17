@@ -254,6 +254,7 @@ export async function completeGoogleProfile(
     existingDisabled: Boolean(existing?.disabled),
     allowlisted,
     inviteValid: false,
+    registrationOpen: process.env.INVITE_REQUIRED === "false",
   });
   if (!decision.ok && decision.code === "not_allowed") {
     const consumed = await consumeInvite(db, inviteCode);
@@ -294,19 +295,19 @@ export async function completeGoogleProfile(
   return { ok: true, user };
 }
 
-export async function saveOauthState(db: Db, state: string, inviteCode: string | null, nextPath: string): Promise<void> {
-  await db.query("insert into oauth_states (state_hash, invite_code, next_path, expires_at, created_at) values ($1,$2,$3,$4,$5)", [
-    sha256(state),
-    inviteCode,
-    nextPath,
-    Date.now() + 10 * 60 * 1000,
-    Date.now(),
-  ]);
+export async function saveOauthState(db: Db, state: string, inviteCode: string | null, nextPath: string, codeVerifier: string): Promise<void> {
+  await db.query(
+    "insert into oauth_states (state_hash, invite_code, next_path, expires_at, created_at, code_verifier) values ($1,$2,$3,$4,$5,$6)",
+    [sha256(state), inviteCode, nextPath, Date.now() + 10 * 60 * 1000, Date.now(), codeVerifier],
+  );
 }
 
-export async function takeOauthState(db: Db, state: string): Promise<{ invite_code: string | null; next_path: string | null } | null> {
-  const rows = await db.query<{ invite_code: string | null; next_path: string | null }>(
-    "select invite_code, next_path from oauth_states where state_hash = $1 and expires_at > $2",
+export async function takeOauthState(
+  db: Db,
+  state: string,
+): Promise<{ invite_code: string | null; next_path: string | null; code_verifier: string | null } | null> {
+  const rows = await db.query<{ invite_code: string | null; next_path: string | null; code_verifier: string | null }>(
+    "select invite_code, next_path, code_verifier from oauth_states where state_hash = $1 and expires_at > $2",
     [sha256(state), Date.now()],
   );
   await db.query("delete from oauth_states where state_hash = $1", [sha256(state)]);

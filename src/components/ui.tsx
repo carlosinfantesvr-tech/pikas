@@ -73,6 +73,24 @@ export function Skeleton({ className = "" }: { className?: string }) {
   return <span className={`skeleton ${className}`} aria-hidden />;
 }
 
+export function celebrate() {
+  if (typeof document === "undefined" || document.documentElement.dataset.motion === "off") return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const root = document.createElement("div");
+  root.className = "confetti";
+  root.setAttribute("aria-hidden", "true");
+  const colors = ["#3ddc97", "#f5b942", "#67e8f9", "#c4b5fd"];
+  for (let index = 0; index < 26; index += 1) {
+    const bit = document.createElement("i");
+    bit.style.left = `${Math.random() * 100}%`;
+    bit.style.background = colors[index % colors.length];
+    bit.style.animationDelay = `${Math.random() * 0.18}s`;
+    root.appendChild(bit);
+  }
+  document.body.appendChild(root);
+  window.setTimeout(() => root.remove(), 1500);
+}
+
 export function ScreenSkeleton() {
   return (
     <div className="grid" aria-busy="true" aria-label="Cargando">

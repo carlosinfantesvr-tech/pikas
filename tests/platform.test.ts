@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { cacheKey, chooseModel, compressContext, estimateCostUsd, fallbackOrder, type ProviderModel } from "../src/lib/ai/router-core";
 import { parseAnthropicSse, parseOpenAiSse } from "../src/lib/ai/sse";
-import { buildGoogleAuthUrl, decideGoogleAccess, exchangeGoogleCode, googleOAuthConfigured } from "../src/lib/auth/google-policy";
+import { buildGoogleAuthUrl, createPkce, decideGoogleAccess, exchangeGoogleCode, googleOAuthConfigured } from "../src/lib/auth/google-policy";
 
 const models: ProviderModel[] = [
   { provider: "openai", tier: "cheap", model: "gpt-4o-mini", configured: false, estInputPerMTok: 0.15, estOutputPerMTok: 0.6 },
@@ -68,14 +68,20 @@ describe("Google OAuth (sin llamar a Google)", () => {
     const url = new URL(
       buildGoogleAuthUrl({
         clientId: "client",
-        redirectUri: "http://localhost:3000/api/auth/google/callback",
+        redirectUri: "https://pikas.vercel.app/api/auth/google/callback",
         state: "abc",
+        codeChallenge: "challenge",
       }),
     );
     expect(url.origin).toBe("https://accounts.google.com");
-    expect(url.searchParams.get("redirect_uri")).toBe("http://localhost:3000/api/auth/google/callback");
+    expect(url.searchParams.get("redirect_uri")).toBe("https://pikas.vercel.app/api/auth/google/callback");
     expect(url.searchParams.get("client_id")).toBe("client");
     expect(url.searchParams.get("state")).toBe("abc");
+    expect(url.searchParams.get("code_challenge")).toBe("challenge");
+    expect(url.searchParams.get("code_challenge_method")).toBe("S256");
+    const pkce = createPkce();
+    expect(pkce.verifier.length).toBeGreaterThan(20);
+    expect(pkce.challenge).not.toBe(pkce.verifier);
   });
 
   it("solo deja entrar a cuentas existentes, allowlist o invitación", () => {
@@ -96,12 +102,25 @@ describe("Google OAuth (sin llamar a Google)", () => {
     expect(
       decideGoogleAccess({ email: "a@b.c", emailVerified: true, existing: true, existingDisabled: false, allowlisted: false, inviteValid: false }),
     ).toEqual({ ok: true, action: "login" });
+    expect(
+      decideGoogleAccess({
+        email: "admin@pikas.test",
+        emailVerified: true,
+        existing: false,
+        existingDisabled: false,
+        allowlisted: false,
+        inviteValid: false,
+        registrationOpen: true,
+      }),
+    ).toEqual({ ok: true, action: "create" });
   });
 
   it("intercambia el código con un fetch simulado", async () => {
     const calls: string[] = [];
-    const fetchImpl: typeof fetch = async (url) => {
+    let body = "";
+    const fetchImpl: typeof fetch = async (url, init) => {
       calls.push(String(url));
+      if (String(url).includes("oauth2.googleapis.com")) body = String(init?.body || "");
       if (String(url).includes("oauth2.googleapis.com")) {
         return new Response(JSON.stringify({ access_token: "token-test" }), { status: 200 });
       }
@@ -111,9 +130,11 @@ describe("Google OAuth (sin llamar a Google)", () => {
       code: "code",
       clientId: "id",
       clientSecret: "secret",
-      redirectUri: "http://localhost:3000/api/auth/google/callback",
+      redirectUri: "https://pikas.vercel.app/api/auth/google/callback",
+      codeVerifier: "verifier-test",
       fetchImpl,
     });
+    expect(body).toContain("code_verifier=verifier-test");
     expect(profile.email).toBe("ana@example.com");
     expect(profile.sub).toBe("sub-1");
     expect(calls).toHaveLength(2);

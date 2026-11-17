@@ -1,3 +1,5 @@
+import { createHash, randomBytes } from "crypto";
+
 export interface AccessInput {
   email: string;
   emailVerified: boolean;
@@ -5,6 +7,7 @@ export interface AccessInput {
   existingDisabled: boolean;
   allowlisted: boolean;
   inviteValid: boolean;
+  registrationOpen?: boolean;
 }
 
 export type AccessDecision =
@@ -21,7 +24,7 @@ export function decideGoogleAccess(input: AccessInput): AccessDecision {
     }
     return { ok: true, action: "login" };
   }
-  if (input.allowlisted || input.inviteValid) {
+  if (input.allowlisted || input.inviteValid || input.registrationOpen) {
     return { ok: true, action: "create" };
   }
   return {
@@ -35,10 +38,17 @@ export function googleOAuthConfigured(env: { clientId?: string; clientSecret?: s
   return Boolean(env.clientId && env.clientSecret);
 }
 
+export function createPkce(): { verifier: string; challenge: string } {
+  const verifier = randomBytes(32).toString("base64url");
+  const challenge = createHash("sha256").update(verifier).digest("base64url");
+  return { verifier, challenge };
+}
+
 export function buildGoogleAuthUrl(input: {
   clientId: string;
   redirectUri: string;
   state: string;
+  codeChallenge: string;
 }): string {
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   url.searchParams.set("client_id", input.clientId);
@@ -48,6 +58,8 @@ export function buildGoogleAuthUrl(input: {
   url.searchParams.set("state", input.state);
   url.searchParams.set("prompt", "select_account");
   url.searchParams.set("access_type", "online");
+  url.searchParams.set("code_challenge", input.codeChallenge);
+  url.searchParams.set("code_challenge_method", "S256");
   return url.toString();
 }
 
@@ -63,6 +75,7 @@ export async function exchangeGoogleCode(input: {
   clientId: string;
   clientSecret: string;
   redirectUri: string;
+  codeVerifier: string;
   fetchImpl?: typeof fetch;
 }): Promise<GoogleProfile> {
   const fetchImpl = input.fetchImpl ?? fetch;
@@ -72,6 +85,7 @@ export async function exchangeGoogleCode(input: {
     client_secret: input.clientSecret,
     redirect_uri: input.redirectUri,
     grant_type: "authorization_code",
+    code_verifier: input.codeVerifier,
   });
   const tokenRes = await fetchImpl("https://oauth2.googleapis.com/token", {
     method: "POST",
