@@ -83,6 +83,8 @@ const NAV = [
   { href: "/arena", label: "Arena" },
   { href: "/ias", label: "Las IAs" },
   { href: "/progreso", label: "Progreso" },
+  { href: "/ligas", label: "Ligas" },
+  { href: "/academia", label: "Academia" },
   { href: "/advisor", label: "Advisor" },
   { href: "/pikas", label: "PIKAS AI" },
   { href: "/rankings", label: "Rankings" },

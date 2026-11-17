@@ -135,7 +135,9 @@ input, select, textarea { font-size: 16px; }
 .status-bad { color: var(--amber); font-size: 12px; }
 .layout-trade { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .8fr); gap: 14px; }
 .chart-canvas { height: 420px; }
-.chart-empty, .empty { padding: 28px; color: var(--muted); text-align: center; }
+.chart-empty, .empty, .empty-art { padding: 28px; color: var(--muted); text-align: center; }
+.empty-mark { font-size: 42px; color: var(--amber); }
+.empty-mark { font-size: 42px; color: var(--amber); }
 .chart-reveal { animation: chartIn .55s cubic-bezier(.2,.8,.2,1); }
 @keyframes chartIn { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
 .sk-line { height: 28px; width: 40%; margin: 0; }

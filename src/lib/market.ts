@@ -35,7 +35,10 @@ export function parseKrakenTicker(payload: unknown): QuoteDraft[] {
   const out: QuoteDraft[] = [];
   for (const asset of ASSETS) {
     if (!asset.kraken) continue;
-    const key = Object.keys(result).find((name) => name.includes(asset.kraken!.replace("USD", "")) && name.endsWith("USD"));
+    const needle = asset.kraken!.replace("USD", "");
+    const key = Object.keys(result)
+      .filter((name) => name.includes(needle) && name.endsWith("USD"))
+      .sort((a, b) => a.length - b.length)[0];
     const row = key ? result[key] : undefined;
     if (!row) continue;
     const last = Array.isArray(row.c) ? String(row.c[0]) : null;

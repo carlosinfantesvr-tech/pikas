@@ -22,6 +22,9 @@ import { buildGoogleAuthUrl, createPkce, exchangeGoogleCode, googleOAuthConfigur
 import { createBattle, listBattles, voteBattle } from "@/lib/battle";
 import { castPoll, castRondaVote, chainExport, createFreeCall, latestBrief, pollTally, readSentiment, rondaView, seasonBoard, verifyHash } from "@/lib/ronda";
 import { homePayload, iaBoard, parseFavorites, progressView } from "@/lib/home";
+import { createLeague, joinLeague, leagueBoard, listLeagues } from "@/lib/league";
+import { ACADEMY_BADGE, gradeLesson, LESSONS } from "@/engine/academy";
+import { notifyOnce } from "@/lib/notify";
 import { ASSET_SYMBOLS } from "@/lib/symbols";
 import { getDb, logEvent } from "@/lib/db";
 import { loadCandles, listQuotes } from "@/lib/market";
@@ -134,6 +137,39 @@ async function handle(req: Request, slug: string[]): Promise<Response> {
   <text x="80" y="360" fill="#93a0b4" font-size="32" font-family="sans-serif">${detail.replace(/[<>&]/g, "")}</text>
   <text x="80" y="520" fill="#67e8f9" font-size="24" font-family="sans-serif">Sin dinero real. Fuente: rondas guardadas.</text>
 </svg>`;
+    return new NextResponse(svg, { headers: { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "no-store" } });
+  }
+  if (path === "public/perfil" && method === "GET") {
+    const username = (new URL(req.url).searchParams.get("username") || "").toLowerCase();
+    const users = await db.query<{ id: string; username: string; avatar_hue: number; created_at: number }>(
+      "select id, username, avatar_hue, created_at from users where username = $1 and disabled = 0",
+      [username],
+    );
+    const person = users[0];
+    if (!person) return fail("Ese perfil no existe.", "NOT_FOUND", 404);
+    const progress = await progressView(db, person.id);
+    const account = await db.query<{ balance: string; initial_balance: string }>(
+      "select balance, initial_balance from accounts where owner_type = 'user' and owner_id = $1 limit 1",
+      [person.id],
+    );
+    const equity = await db.query<{ ts: number; equity: string }>(
+      "select ts, equity from equity_snapshots where account_id = (select id from accounts where owner_type = 'user' and owner_id = $1 limit 1) order by ts asc limit 80",
+      [person.id],
+    );
+    return json({
+      username: person.username,
+      avatarHue: person.avatar_hue,
+      createdAt: Number(person.created_at),
+      equity: account[0]?.balance || null,
+      initial: account[0]?.initial_balance || null,
+      progress: { level: progress.level, badges: progress.badges.filter((badge) => badge.earned), xp: progress.xp, streakDays: progress.streakDays },
+      series: equity.map((point) => ({ ts: Number(point.ts), equity: point.equity })),
+      simulation: true,
+    });
+  }
+  if (path === "public/perfil.svg" && method === "GET") {
+    const username = (new URL(req.url).searchParams.get("username") || "pikas").replace(/[<>&"]/g, "").slice(0, 20);
+    const svg = `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="1200" height="630" fill="#08090d"/><text x="80" y="180" fill="#f5b942" font-size="28" font-family="sans-serif">PIKAS · simulación</text><text x="80" y="300" fill="#e8edf5" font-size="72" font-family="sans-serif">${username}</text><text x="80" y="390" fill="#93a0b4" font-size="28" font-family="sans-serif">Perfil público. Sin dinero real.</text></svg>`;
     return new NextResponse(svg, { headers: { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "no-store" } });
   }
   if (path === "public/verificar" && method === "GET") {
@@ -256,6 +292,51 @@ async function handle(req: Request, slug: string[]): Promise<Response> {
 
   const user = await userFromToken(db, readCookie(req));
   if (!user) return fail("No autenticado", "UNAUTHENTICATED", 401);
+
+  if (path === "ligas" && method === "GET") return json({ leagues: await listLeagues(db, user.id) });
+  if (path === "ligas" && method === "POST") {
+    if (!sameOrigin(req)) return fail("Origen no permitido.", "CSRF", 403);
+    const input = z.object({ name: z.string() }).safeParse(await req.json().catch(() => null));
+    if (!input.success) return fail("Nombre no válido.", "BAD_INPUT", 400);
+    const created = await createLeague(db, user.id, input.data.name);
+    if (!created.ok) return fail(created.error, "LEAGUE", 400);
+    return json(created);
+  }
+  if (path === "ligas/unirse" && method === "POST") {
+    if (!sameOrigin(req)) return fail("Origen no permitido.", "CSRF", 403);
+    const input = z.object({ code: z.string() }).safeParse(await req.json().catch(() => null));
+    if (!input.success) return fail("Código no válido.", "BAD_INPUT", 400);
+    const joined = await joinLeague(db, user.id, user.username, input.data.code);
+    if (!joined.ok) return fail(joined.error, "LEAGUE", 400);
+    return json(joined);
+  }
+  if (path === "ligas/tabla" && method === "GET") {
+    const id = new URL(req.url).searchParams.get("id") || "";
+    const board = await leagueBoard(db, user.id, id);
+    if (!board.ok) return fail(board.error, "LEAGUE", 403);
+    return json(board);
+  }
+  if (path === "academia" && method === "GET") {
+    const passed = await db.query<{ lesson_id: string }>("select lesson_id from academy_passes where user_id = $1", [user.id]);
+    const done = new Set(passed.map((row) => row.lesson_id));
+    return json({
+      lessons: LESSONS.map(({ answer: _answer, ...lesson }) => ({ ...lesson, passed: done.has(lesson.id) })),
+      badge: done.size === LESSONS.length ? ACADEMY_BADGE : null,
+    });
+  }
+  if (path === "academia" && method === "POST") {
+    if (!sameOrigin(req)) return fail("Origen no permitido.", "CSRF", 403);
+    const input = z.object({ id: z.string(), choice: z.number().int() }).safeParse(await req.json().catch(() => null));
+    if (!input.success) return fail("Respuesta no válida.", "BAD_INPUT", 400);
+    if (!gradeLesson(input.data.id, input.data.choice)) return json({ ok: false, error: "Esa no es la respuesta. Vuelve a leer la lección." });
+    await db.query(
+      "insert into academy_passes (user_id, lesson_id, passed_at) values ($1,$2,$3) on conflict (user_id, lesson_id) do nothing",
+      [user.id, input.data.id, Date.now()],
+    );
+    const passed = await db.query("select lesson_id from academy_passes where user_id = $1", [user.id]);
+    if (passed.length === LESSONS.length) await notifyOnce(db, user.id, "logro", "Medalla de academia", "Aprobaste las cinco lecciones.");
+    return json({ ok: true });
+  }
 
   if (path === "home" && method === "GET") {
     const settings = await db.query<{ favorites: string | null }>("select favorites from user_settings where user_id = $1", [user.id]);

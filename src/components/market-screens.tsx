@@ -10,7 +10,7 @@ import { useApp } from "./shell";
 import { AnimatedNumber, PriceText, Skeleton, useToast } from "./ui";
 import { ago, money, pct, signed } from "@/lib/format";
 import { liquidationPrice } from "@/engine/trading";
-import { ASSET_SYMBOLS } from "@/lib/symbols";
+import { ASSET_SYMBOLS, marketNote, ASSETS } from "@/lib/symbols";
 import { AssetMark } from "./marks";
 
 export function LoginScreen() {
@@ -190,7 +190,7 @@ export function DashboardScreen() {
             {home?.sparks.find((spark) => spark.symbol === quote.symbol) ? <Spark closes={home.sparks.find((spark) => spark.symbol === quote.symbol)!.closes} /> : null}
             {quote.price ? <div className="price"><PriceText value={quote.price} digits={quote.kind === "crypto" ? 2 : 2} /></div> : <strong>No disponible</strong>}
             <span className={Number(quote.changeValue) < 0 ? "down" : "up"}>{quote.changeValue == null ? "variación n/d" : `${pct(quote.changeValue)} · ${quote.changeBasis === "24h" ? "24 h" : quote.changeBasis === "day_open" ? "apertura" : "cierre previo"}`}</span>
-            <span className="fine">{quote.source || "sin fuente"} · {quote.status} · {ago(quote.providerTs || quote.fetchedAt)}</span>
+            <span className="fine">{quote.source || "sin fuente"} · {quote.status} · {ago(quote.providerTs || quote.fetchedAt)} · {marketNote(ASSETS.find((asset) => asset.symbol === quote.symbol) || { symbol: quote.symbol, name: quote.name, kind: "crypto" })}</span>
             {quote.detail ? <span className="status-bad">{quote.detail}</span> : null}
           </article>
         ))}

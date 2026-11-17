@@ -18,6 +18,10 @@ Archivos en color, carpeta `public/brands/assets/`:
 - `doge.svg` Dogecoin
 - `link.svg` Chainlink
 - `avax.svg` Avalanche
+- `bnb.svg` BNB
+- `dot.svg` Polkadot
+- `ltc.svg` Litecoin
+- `pol.svg` Polygon (el archivo CC0 se llama históricamente MATIC; el activo en la app es POL)
 
 ## Marcas en un solo color
 
@@ -26,6 +30,10 @@ Origen: [Simple Icons](https://github.com/simple-icons/simple-icons) 16.38, lice
 - `public/brands/assets/aapl.svg` Apple
 - `public/brands/assets/msft.svg` Microsoft
 - `public/brands/assets/nvda.svg` NVIDIA
+- `public/brands/assets/tsla.svg` Tesla
+- `public/brands/assets/amzn.svg` Amazon
+- `public/brands/assets/googl.svg` Google
+- `public/brands/assets/meta.svg` Meta
 - `public/brands/ai/gemini.svg` Google Gemini
 - `public/brands/ai/openrouter.svg` OpenRouter
 - `public/brands/ai/mistral.svg` Mistral AI
