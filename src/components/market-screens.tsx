@@ -45,7 +45,8 @@ export function LoginScreen() {
       <label className="field">Contraseña<input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required autoComplete="current-password" /></label>
       {error ? <p className="down">{error}</p> : null}
       <button className="btn btn-primary" type="submit">Entrar</button>
-      {google ? <a className="btn" href="/api/auth/google/start">Continuar con Google</a> : <p className="fine">Inicio con Google no configurado</p>}
+      <button className="btn" type="button" disabled={google !== true} aria-describedby={google === false ? "google-off" : undefined} onClick={() => { if (google) window.location.href = "/api/auth/google/start"; }}>Continuar con Google</button>
+      {google === false ? <p id="google-off" className="fine">Inicio con Google no configurado. Faltan GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET en el servidor.</p> : null}
       <p className="fine"><Link href="/registro">Crear cuenta con invitación</Link> · <Link href="/recuperar">Recuperar acceso</Link></p>
     </form>
   );
@@ -75,7 +76,8 @@ export function RegisterScreen() {
       ))}
       {error ? <p className="down">{error}</p> : null}
       <button className="btn btn-primary" type="submit">Registrarme</button>
-      {google ? <a className="btn" href={`/api/auth/google/start?invite=${encodeURIComponent(form.inviteCode)}`}>Continuar con Google</a> : <p className="fine">Inicio con Google no configurado</p>}
+      <button className="btn" type="button" disabled={!google} aria-describedby={google ? undefined : "google-off-reg"} onClick={() => { if (google) window.location.href = `/api/auth/google/start?invite=${encodeURIComponent(form.inviteCode)}`; }}>Continuar con Google</button>
+      {!google ? <p id="google-off-reg" className="fine">Inicio con Google no configurado. Faltan GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET en el servidor.</p> : null}
       <Link href="/login">Ya tengo cuenta</Link>
     </form>
   );

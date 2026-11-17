@@ -18,8 +18,9 @@ import {
   takeOauthState,
   userFromToken,
 } from "@/lib/auth";
-import { buildGoogleAuthUrl, exchangeGoogleCode, googleOAuthConfigured } from "@/lib/auth/google-policy";
+import { buildGoogleAuthUrl, createPkce, exchangeGoogleCode, googleOAuthConfigured } from "@/lib/auth/google-policy";
 import { createBattle, listBattles, voteBattle } from "@/lib/battle";
+import { castPoll, castRondaVote, chainExport, createFreeCall, latestBrief, pollTally, readSentiment, rondaView, seasonBoard, verifyHash } from "@/lib/ronda";
 import { getDb, logEvent } from "@/lib/db";
 import { loadCandles, listQuotes } from "@/lib/market";
 import { latestIndicators, computeIndicators, type Bar } from "@/engine/indicators";
@@ -51,6 +52,16 @@ function json(data: unknown, status = 200) {
 
 function fail(error: string, code: string, status: number) {
   return json({ error, code }, status);
+}
+
+function sameOrigin(req: Request): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return true;
+  try {
+    return new URL(origin).host === new URL(req.url).host;
+  } catch {
+    return false;
+  }
 }
 
 function originOf(req: Request): string {
@@ -94,13 +105,35 @@ async function handle(req: Request, slug: string[]): Promise<Response> {
     return fail(error instanceof Error ? error.message : "Base de datos no disponible", "DB", 500);
   }
 
+  if (path === "public/cadena" && method === "GET") {
+    const chain = await chainExport(db);
+    const url = new URL(req.url);
+    if (url.searchParams.get("format") === "csv") {
+      const header = "prev_hash,hash,kind,created_at,ok,canonical";
+      const lines = chain.rows.map((row) => [row.prev_hash, row.hash, row.kind, row.created_at, row.ok, JSON.stringify(row.canonical)].join(","));
+      return new NextResponse([header, ...lines].join("\n"), {
+        headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": "attachment; filename=pikas-cadena.csv" },
+      });
+    }
+    return json(chain);
+  }
+  if (path === "public/verificar" && method === "GET") {
+    const hash = new URL(req.url).searchParams.get("hash") || "";
+    if (!/^[0-9a-f]{64}$/i.test(hash)) return fail("El hash tiene que ser SHA-256 en hexadecimal.", "BAD_HASH", 400);
+    return json(await verifyHash(db, hash));
+  }
+
   if (path === "health" && method === "GET") {
     return json({ ok: true, simulation: true, db: db.kind, time: new Date().toISOString(), ai: aiConfigured(), google: googleOAuthConfigured({ clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET }) });
   }
 
   if (path === "auth/google/status" && method === "GET") {
     const configured = googleOAuthConfigured({ clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET });
-    return json({ configured, label: configured ? "Google" : "Inicio con Google no configurado" });
+    return json({
+      configured,
+      label: configured ? "Continuar con Google" : "Inicio con Google no configurado",
+      reason: configured ? null : "Faltan GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET.",
+    });
   }
 
   if (path === "auth/google/start" && method === "GET") {
@@ -109,14 +142,16 @@ async function handle(req: Request, slug: string[]): Promise<Response> {
     }
     const url = new URL(req.url);
     const state = randomBytes(24).toString("base64url");
+    const pkce = createPkce();
     const invite = url.searchParams.get("invite");
     const next = url.searchParams.get("next") || "/";
-    await saveOauthState(db, state, invite, next.startsWith("/") ? next : "/");
+    await saveOauthState(db, state, invite, next.startsWith("/") ? next : "/", pkce.verifier);
     const redirect = NextResponse.redirect(
       buildGoogleAuthUrl({
         clientId: process.env.GOOGLE_CLIENT_ID!,
         redirectUri: `${originOf(req)}/api/auth/google/callback`,
         state,
+        codeChallenge: pkce.challenge,
       }),
     );
     redirect.cookies.set("pikas_oauth", state, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 600 });
@@ -133,13 +168,14 @@ async function handle(req: Request, slug: string[]): Promise<Response> {
     const cookie = readCookie(req, "pikas_oauth");
     if (!code || !state || !cookie || cookie !== state) return back("La sesión de Google no coincide. Vuelve a intentarlo.");
     const saved = await takeOauthState(db, state);
-    if (!saved) return back("El enlace de Google caducó.");
+    if (!saved?.code_verifier) return back("El enlace de Google caducó.");
     try {
       const profile = await exchangeGoogleCode({
         code,
         clientId: process.env.GOOGLE_CLIENT_ID!,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         redirectUri: `${originOf(req)}/api/auth/google/callback`,
+        codeVerifier: saved.code_verifier,
       });
       const result = await completeGoogleProfile(db, profile, saved.invite_code);
       if (!result.ok) return back(result.error);
@@ -330,6 +366,50 @@ async function handle(req: Request, slug: string[]): Promise<Response> {
     });
     const snaps = await db.query("select ts, equity, balance from equity_snapshots where account_id = $1 order by ts asc", [account.id]);
     return json({ trades, equity: snaps });
+  }
+
+  if (path === "ronda" && method === "GET") {
+    return json({ rondas: await rondaView(db, user.id), sentiment: await readSentiment(db), brief: await latestBrief(db) });
+  }
+  if (path === "ronda/vote" && method === "POST") {
+    if (!sameOrigin(req)) return fail("Origen no permitido.", "CSRF", 403);
+    const input = z.object({ rondaId: z.string(), side: z.enum(["up", "down"]) }).safeParse(await req.json().catch(() => null));
+    if (!input.success) return fail("Voto no válido.", "BAD_INPUT", 400);
+    const result = await castRondaVote(db, user.id, user.username, input.data.rondaId, input.data.side);
+    if (!result.ok) return fail(result.error, "VOTE", 400);
+    return json({ ok: true, rondas: await rondaView(db, user.id) });
+  }
+  if (path === "libre" && method === "GET") {
+    const calls = await db.query("select * from free_calls where user_id = $1 order by created_at desc limit 40", [user.id]);
+    return json({ calls });
+  }
+  if (path === "libre" && method === "POST") {
+    if (!sameOrigin(req)) return fail("Origen no permitido.", "CSRF", 403);
+    const input = z.object({
+      symbol: z.string(),
+      side: z.enum(["up", "down"]),
+      entry: z.string(),
+      stop: z.string(),
+      target: z.string(),
+      horizon: z.enum(["4h", "8h", "24h", "1w"]),
+    }).safeParse(await req.json().catch(() => null));
+    if (!input.success) return fail("La llamada libre no es válida.", "BAD_INPUT", 400);
+    const listed = await listQuotes(db);
+    const quote = listed.find((item) => item.symbol === input.data.symbol);
+    if (!quote?.executable || !quote.price) return fail("Ese activo no tiene un precio ejecutable ahora.", "NO_PRICE", 400);
+    if (quote.price !== input.data.entry) return fail("La entrada tiene que ser el precio de la fuente, no uno escrito a mano.", "ENTRY", 400);
+    const result = await createFreeCall(db, user.id, { ...input.data, source: quote.source }, Date.now());
+    if (!result.ok) return fail(result.error, "LIBRE", 400);
+    return json(result);
+  }
+  if (path === "temporada" && method === "GET") {
+    return json({ season: await seasonBoard(db), poll: await pollTally(db), brief: await latestBrief(db) });
+  }
+  if (path === "temporada/encuesta" && method === "POST") {
+    if (!sameOrigin(req)) return fail("Origen no permitido.", "CSRF", 403);
+    const input = z.object({ choice: z.enum(["comunidad", "ia", "bots"]) }).safeParse(await req.json().catch(() => null));
+    if (!input.success) return fail("Elige comunidad, ia o bots.", "BAD_INPUT", 400);
+    return json(await castPoll(db, user.id, input.data.choice));
   }
 
   if (path === "battle" && method === "GET") return json({ battles: await listBattles(db, user.id) });

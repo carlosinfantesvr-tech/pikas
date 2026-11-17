@@ -1,3 +1,96 @@
+export const MIGRATION_003: string[] = [
+  `create table if not exists rondas (
+    id text primary key,
+    session_key text not null unique,
+    label text not null,
+    symbol text not null,
+    status text not null,
+    vote_opens_at bigint not null,
+    starts_at bigint not null,
+    ends_at bigint not null,
+    entry_price text,
+    stop_pct text,
+    target_pct text,
+    source text,
+    resolution text,
+    resolution_note text,
+    resolved_at bigint,
+    created_at bigint not null
+  )`,
+  `create table if not exists ronda_picks (
+    id text primary key,
+    ronda_id text not null,
+    actor_type text not null,
+    actor_id text not null,
+    display_name text not null,
+    side text not null,
+    rationale text,
+    entry_price text,
+    stop_price text,
+    target_price text,
+    points text,
+    outcome text,
+    hash text,
+    created_at bigint not null,
+    updated_at bigint not null,
+    unique (ronda_id, actor_type, actor_id)
+  )`,
+  `create table if not exists proof_chain (
+    id text primary key,
+    seq integer not null unique,
+    prev_hash text not null,
+    hash text not null unique,
+    canonical text not null,
+    kind text not null,
+    ref_id text not null,
+    created_at bigint not null
+  )`,
+  `create index if not exists idx_proof_chain_time on proof_chain(seq)`,
+  `create table if not exists free_calls (
+    id text primary key,
+    user_id text not null,
+    symbol text not null,
+    side text not null,
+    entry_price text not null,
+    stop_price text not null,
+    target_price text not null,
+    horizon text not null,
+    starts_at bigint not null,
+    ends_at bigint not null,
+    status text not null,
+    source text,
+    resolution text,
+    points text,
+    note text,
+    hash text not null,
+    created_at bigint not null,
+    resolved_at bigint
+  )`,
+  `create table if not exists month_poll (
+    user_id text not null,
+    month_key text not null,
+    choice text not null,
+    created_at bigint not null,
+    primary key (user_id, month_key)
+  )`,
+  `create table if not exists sentiment_cache (
+    id text primary key,
+    value integer,
+    label text,
+    source text not null,
+    fetched_at bigint not null,
+    status text not null,
+    detail text
+  )`,
+  `create table if not exists daily_briefs (
+    day_key text primary key,
+    body text not null,
+    source text not null,
+    created_at bigint not null
+  )`,
+  `alter table oauth_states add column if not exists code_verifier text`,
+];
+
 export const MIGRATION_002: string[] = [
   `create table if not exists ai_provider_state (
     provider text primary key,

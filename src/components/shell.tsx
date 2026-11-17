@@ -57,6 +57,9 @@ const NAV = [
   { href: "/", label: "Inicio" },
   { href: "/trading", label: "Trading" },
   { href: "/battle", label: "Battle" },
+  { href: "/ronda", label: "Ronda" },
+  { href: "/libre", label: "Libre" },
+  { href: "/temporada", label: "Temporada" },
   { href: "/arena", label: "Arena" },
   { href: "/advisor", label: "Advisor" },
   { href: "/pikas", label: "PIKAS AI" },
@@ -79,7 +82,7 @@ function Frame({ children }: { children: React.ReactNode }) {
   const [setup, setSetup] = useState<string>("100");
   const [install, setInstall] = useState<null | "ios" | "native">(null);
   const [promptEvent, setPromptEvent] = useState<{ prompt: () => Promise<void> } | null>(null);
-  const auth = pathname === "/login" || pathname === "/registro" || pathname.startsWith("/recuperar");
+  const auth = pathname === "/login" || pathname === "/registro" || pathname === "/verificar" || pathname.startsWith("/recuperar");
 
   async function refresh() {
     const next = await api<Bootstrap>("/api/bootstrap");
