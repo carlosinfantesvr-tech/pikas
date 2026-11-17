@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { api, ApiError } from "./api";
 import { PikasMark } from "./logo";
 import { useApp } from "./shell";
-import { ScreenSkeleton, useToast } from "./ui";
+import { celebrate, ScreenSkeleton, useToast } from "./ui";
 import { money, when } from "@/lib/format";
 import { ASSET_SYMBOLS } from "@/lib/symbols";
 
@@ -36,7 +36,7 @@ interface Ronda {
   target_pct?: string | null;
   source?: string | null;
   resolution_note?: string | null;
-  mine?: { side: string } | null;
+  mine?: { side: string; points?: string | null } | null;
   votes?: number | null;
   teams?: { comunidad: string | null; ia: string | null; bots: string | null; quorum: number } | null;
   picks?: Pick[];
@@ -63,6 +63,18 @@ export function RondaScreen() {
   }
 
   useEffect(() => { load().catch(() => undefined); }, []);
+  useEffect(() => {
+    if (!rondas) return;
+    for (const ronda of rondas) {
+      const points = Number(ronda.mine?.points);
+      if (!Number.isFinite(points) || points <= 0) continue;
+      const key = `pikas-win-${ronda.id}`;
+      if (sessionStorage.getItem(key)) continue;
+      sessionStorage.setItem(key, "1");
+      celebrate();
+      toast({ title: "Ronda a favor", body: `${ronda.label}: ${points.toFixed(2)} puntos`, tone: "ok" });
+    }
+  }, [rondas, toast]);
 
   async function vote(rondaId: string, side: Side) {
     try {
@@ -103,8 +115,8 @@ export function RondaScreen() {
           <p>Entrada {ronda.entry_price ? money(ronda.entry_price) : "se fija al empezar"} · stop {ronda.stop_pct || "—"}% · objetivo {ronda.target_pct || "—"}% · fuente {ronda.source || "pendiente"}</p>
           {ronda.status === "voting" ? (
             <div className="row">
-              <button className="btn btn-primary" type="button" onClick={() => vote(ronda.id, "up")}>Sube</button>
-              <button className="btn" type="button" onClick={() => vote(ronda.id, "down")}>Baja</button>
+              <button className="btn btn-up" type="button" onClick={() => vote(ronda.id, "up")}>▲ Sube</button>
+              <button className="btn btn-down" type="button" onClick={() => vote(ronda.id, "down")}>▼ Baja</button>
               <span className="fine">{ronda.mine ? `Tu voto actual: ${ronda.mine.side === "up" ? "sube" : "baja"}. Puedes cambiarlo.` : "Aún no has votado."}</span>
             </div>
           ) : null}
@@ -179,9 +191,9 @@ export function LibreScreen() {
           <select value={symbol} onChange={(event) => setSymbol(event.target.value)}>{ASSET_SYMBOLS.map((item) => <option key={item}>{item}</option>)}</select>
         </label>
         <p>Entrada {quote?.price ? money(quote.price) : "sin precio"} · {quote?.source || "sin fuente"} · {quote?.executable ? "ejecutable" : "no ejecutable"}</p>
-        <div className="chips">
-          <button type="button" className={side === "up" ? "chip on" : "chip"} onClick={() => setSide("up")}>Sube</button>
-          <button type="button" className={side === "down" ? "chip on" : "chip"} onClick={() => setSide("down")}>Baja</button>
+        <div className="row">
+          <button type="button" className={side === "up" ? "btn btn-up" : "btn"} aria-pressed={side === "up"} onClick={() => setSide("up")}>▲ Sube</button>
+          <button type="button" className={side === "down" ? "btn btn-down" : "btn"} aria-pressed={side === "down"} onClick={() => setSide("down")}>▼ Baja</button>
         </div>
         <label className="field">Stop<input value={stop} onChange={(event) => setStop(event.target.value)} inputMode="decimal" required /></label>
         <label className="field">Objetivo<input value={target} onChange={(event) => setTarget(event.target.value)} inputMode="decimal" required /></label>
@@ -193,7 +205,7 @@ export function LibreScreen() {
             <option value="1w">1 semana</option>
           </select>
         </label>
-        <button className="btn btn-primary" type="submit" disabled={!quote?.executable}>Registrar llamada simulada</button>
+        <button className={side === "up" ? "btn btn-up" : "btn btn-down"} type="submit" disabled={!quote?.executable}>{side === "up" ? "▲ Registrar subida" : "▼ Registrar bajada"}</button>
       </form>
       {calls === null ? <ScreenSkeleton /> : null}
       {error ? <p className="status-bad" role="alert">{error}</p> : null}

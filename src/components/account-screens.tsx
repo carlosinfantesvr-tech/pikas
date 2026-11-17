@@ -136,7 +136,7 @@ export function SettingsScreen() {
       }}>
         <h2>Reiniciar simulación</h2>
         <div className="chips">{["10", "50", "100", "500"].map((amount) => <button type="button" key={amount} className={initial === amount ? "chip on" : "chip"} onClick={() => setInitial(amount)}>{amount}</button>)}</div>
-        <button className="btn" type="submit">Reiniciar a {initial} USDT</button>
+        <button className="btn btn-danger" type="submit">Reiniciar a {initial} USDT</button>
       </form>
     </div>
   );

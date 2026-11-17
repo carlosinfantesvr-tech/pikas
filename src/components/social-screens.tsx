@@ -41,8 +41,8 @@ export function BattleScreen() {
           <p>{Number(battle.participants)} participantes {battle.upPct != null ? `· SUBE ${pct(Number(battle.upPct) * 100, 0)} · BAJA ${pct(Number(battle.downPct) * 100, 0)}` : "· la distribución se muestra al cerrar el voto"}</p>
           {battle.status === "voting" ? (
             <div className="row">
-              <button className="btn btn-primary" type="button" onClick={async () => { await api("/api/battle/vote", { method: "POST", body: JSON.stringify({ battleId: battle.id, direction: "up" }) }); await load(); }}>SUBE</button>
-              <button className="btn" type="button" onClick={async () => { await api("/api/battle/vote", { method: "POST", body: JSON.stringify({ battleId: battle.id, direction: "down" }) }); await load(); }}>BAJA</button>
+              <button className="btn btn-up" type="button" onClick={async () => { await api("/api/battle/vote", { method: "POST", body: JSON.stringify({ battleId: battle.id, direction: "up" }) }); await load(); }}>▲ Sube</button>
+              <button className="btn btn-down" type="button" onClick={async () => { await api("/api/battle/vote", { method: "POST", body: JSON.stringify({ battleId: battle.id, direction: "down" }) }); await load(); }}>▼ Baja</button>
               {battle.myVote ? <span>Tu voto: {String(battle.myVote)}</span> : null}
             </div>
           ) : null}
@@ -69,10 +69,10 @@ export function ArenaScreen() {
       <div><p className="kicker">AI Arena</p><h1>Mismas reglas, cuentas separadas</h1><p className="muted">Cada motor con su variable de entorno es un competidor con cuenta simulada propia. El mismo contexto para todos. Sin clave: no configurado y sin operaciones. El baseline es una regla, no un modelo.</p></div>
       <div className="row">
         {ASSETS.filter((asset) => asset.kind === "crypto").map((asset) => <button key={asset.symbol} className={symbol === asset.symbol ? "chip on" : "chip"} type="button" onClick={() => setSymbol(asset.symbol)}>{asset.symbol}</button>)}
-        <button className="btn btn-primary" type="button" onClick={async () => {
+        <button className="btn btn-secondary" type="button" onClick={async () => {
           try { await api("/api/arena/run", { method: "POST", body: JSON.stringify({ symbol, mode: "competition" }) }); toast({ title: "Ciclo registrado", tone: "ok" }); await load(); }
           catch (err) { toast({ title: "No se ejecutó", body: err instanceof Error ? err.message : "", tone: "danger" }); }
-        }}>Ejecutar ciclo</button>
+        }}>▶ Ejecutar ciclo</button>
       </div>
       <div className="cards">
         {(board?.agents || []).map((agent) => (
@@ -148,8 +148,16 @@ export function RankingsScreen() {
   const [data, setData] = useState<{ paper: Array<Record<string, unknown>>; battle: Array<Record<string, unknown>>; arena: Array<Record<string, unknown>>; note: string } | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
+    let alive = true;
     setData(null);
-    api<NonNullable<typeof data>>(`/api/rankings?window=${windowName}`).then((next) => { setData(next); setError(""); }).catch((err) => setError(err instanceof Error ? err.message : "No se pudo calcular el ranking"));
+    const load = () => {
+      api<NonNullable<typeof data>>(`/api/rankings?window=${windowName}`)
+        .then((next) => { if (alive) { setData(next); setError(""); } })
+        .catch((err) => { if (alive) setError(err instanceof Error ? err.message : "No se pudo calcular el ranking"); });
+    };
+    load();
+    const id = window.setInterval(load, 15000);
+    return () => { alive = false; window.clearInterval(id); };
   }, [windowName]);
   const paper = (data?.paper || []).map((row) => ({ ...row, id: String(row.accountId) }));
   const battle = (data?.battle || []).map((row) => ({ ...row, id: String(row.userId) }));

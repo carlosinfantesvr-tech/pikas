@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import { api } from "./api";
 import { PikasChat, PikasMark } from "./pikas-chat";
-import { AnimatedNumber, MotionProvider, PriceText, Skeleton, ToastProvider, useToast } from "./ui";
+import { AnimatedNumber, MotionProvider, PriceText, Skeleton, ToastProvider, useReduced, useToast } from "./ui";
 import { money, signed } from "@/lib/format";
 
 export interface Quote {
@@ -51,6 +51,25 @@ interface AppState {
 const Ctx = createContext<AppState>({ data: null, loading: true, refresh: async () => {} });
 export function useApp() {
   return useContext(Ctx);
+}
+
+function PriceTape({ quotes }: { quotes: Quote[] }) {
+  const reduced = useReduced();
+  const live = quotes.filter((quote) => quote.price);
+  if (!live.length) return null;
+  const loop = reduced ? live : [...live, ...live];
+  return (
+    <div className={reduced ? "ticker ticker-still" : "ticker"} role="region" aria-label="Cinta de precios">
+      <div className="ticker-track">
+        {loop.map((quote, index) => (
+          <span key={`${quote.symbol}-${index}`}>
+            {quote.symbol} <PriceText value={quote.price} />
+            <em className={Number(quote.changeValue) < 0 ? "down" : "up"}>{quote.changeValue == null ? "" : ` ${Number(quote.changeValue).toFixed(2)}%`}</em>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 const NAV = [
@@ -161,6 +180,7 @@ function Frame({ children }: { children: React.ReactNode }) {
               <Link href="/alertas" className="icon-btn" aria-label="Alertas">{data?.unread ? <i>{data.unread}</i> : null}●</Link>
               <Link href="/perfil" className="avatar" style={{ background: `hsl(${data?.user.avatarHue ?? 200} 70% 45%)` }}>{data?.user.username.slice(0, 1).toUpperCase()}</Link>
             </header>
+            <PriceTape quotes={data?.quotes || []} />
             <main id="contenido" className="page-enter" key={pathname}>{children}</main>
           </div>
           {install ? (
