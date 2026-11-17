@@ -91,6 +91,12 @@ export const MIGRATION_003: string[] = [
   `alter table oauth_states add column if not exists code_verifier text`,
 ];
 
+export const MIGRATION_004: string[] = [
+  `alter table user_settings add column if not exists theme text not null default 'dark'`,
+  `alter table user_settings add column if not exists favorites text not null default ''`,
+  `alter table user_settings add column if not exists tutorial_done integer not null default 0`,
+];
+
 export const MIGRATION_002: string[] = [
   `create table if not exists ai_provider_state (
     provider text primary key,

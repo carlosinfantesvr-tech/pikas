@@ -7,6 +7,7 @@ import { api } from "./api";
 import { PikasChat, PikasMark } from "./pikas-chat";
 import { AnimatedNumber, MotionProvider, PriceText, Skeleton, ToastProvider, useReduced, useToast } from "./ui";
 import { money, signed } from "@/lib/format";
+import { AssetMark } from "./marks";
 
 export interface Quote {
   symbol: string;
@@ -39,7 +40,7 @@ interface Bootstrap {
   quotes: Quote[];
   unread: number;
   ai: { configured: boolean; providers: Array<{ id: string; label: string; configured: boolean }> };
-  settings: { reduce_motion?: number; alert_move_pct?: string; autonomous_enabled?: number } | null;
+  settings: { reduce_motion?: number; alert_move_pct?: string; autonomous_enabled?: number; theme?: string; tutorial_done?: number; favorites?: string } | null;
 }
 
 interface AppState {
@@ -63,7 +64,7 @@ function PriceTape({ quotes }: { quotes: Quote[] }) {
       <div className="ticker-track">
         {loop.map((quote, index) => (
           <span key={`${quote.symbol}-${index}`}>
-            {quote.symbol} <PriceText value={quote.price} />
+            <AssetMark symbol={quote.symbol} /> {quote.symbol} <PriceText value={quote.price} />
             <em className={Number(quote.changeValue) < 0 ? "down" : "up"}>{quote.changeValue == null ? "" : ` ${Number(quote.changeValue).toFixed(2)}%`}</em>
           </span>
         ))}
@@ -80,6 +81,8 @@ const NAV = [
   { href: "/libre", label: "Libre" },
   { href: "/temporada", label: "Temporada" },
   { href: "/arena", label: "Arena" },
+  { href: "/ias", label: "Las IAs" },
+  { href: "/progreso", label: "Progreso" },
   { href: "/advisor", label: "Advisor" },
   { href: "/pikas", label: "PIKAS AI" },
   { href: "/rankings", label: "Rankings" },
@@ -100,6 +103,8 @@ function Frame({ children }: { children: React.ReactNode }) {
   const [chat, setChat] = useState(false);
   const [setup, setSetup] = useState<string>("100");
   const [install, setInstall] = useState<null | "ios" | "native">(null);
+  const [quick, setQuick] = useState(false);
+  const [quickSide, setQuickSide] = useState<"long" | "short">("long");
   const [promptEvent, setPromptEvent] = useState<{ prompt: () => Promise<void> } | null>(null);
   const auth = pathname === "/login" || pathname === "/registro" || pathname === "/verificar" || pathname.startsWith("/recuperar");
 
@@ -149,6 +154,9 @@ function Frame({ children }: { children: React.ReactNode }) {
   const equity = data?.account ? Number(data.account.equity) : null;
   const pnl = data?.account ? Number(data.account.equity) - Number(data.account.initialBalance) : null;
   const live = data?.quotes.some((quote) => quote.executable) ?? false;
+  useEffect(() => {
+    document.documentElement.dataset.theme = data?.settings?.theme === "light" ? "light" : "dark";
+  }, [data?.settings?.theme]);
 
   return (
     <MotionProvider off={Boolean(data?.settings?.reduce_motion)}>
@@ -193,13 +201,51 @@ function Frame({ children }: { children: React.ReactNode }) {
             </div>
           ) : null}
           <nav className="tabbar" aria-label="Navegación principal">
-            <Link href="/" className={pathname === "/" ? "active" : ""}>Inicio</Link>
-            <Link href="/trading" className={pathname === "/trading" ? "active" : ""}>Trading</Link>
-            <Link href="/battle" className={pathname === "/battle" ? "active" : ""}>Battle</Link>
-            <Link href="/arena" className={pathname === "/arena" ? "active" : ""}>Arena</Link>
-            <button type="button" onClick={() => setMore(true)}>Más</button>
+            <Link href="/" className={pathname === "/" ? "active" : ""}><span className="tab-ico home" aria-hidden>⌂</span>Inicio</Link>
+            <Link href="/trading" className={pathname === "/trading" ? "active" : ""}><span className="tab-ico trade" aria-hidden>▲</span>Trading</Link>
+            <Link href="/ronda" className={pathname === "/ronda" ? "active" : ""}><span className="tab-ico ronda" aria-hidden>♠</span>Ronda</Link>
+            <Link href="/ias" className={pathname === "/ias" ? "active" : ""}><span className="tab-ico ia" aria-hidden>✦</span>IAs</Link>
+            <button type="button" onClick={() => setMore(true)}><span className="tab-ico more" aria-hidden>☰</span>Más</button>
           </nav>
+          <button className="fab fab-trade" type="button" onClick={() => setQuick(true)} aria-label="Operar rápido">▲</button>
           <button className="fab" type="button" onClick={() => setChat(true)} aria-label="Abrir PIKAS AI"><PikasMark /></button>
+          {quick ? (
+            <div className="sheet-backdrop" onClick={() => setQuick(false)}>
+              <form className="sheet" onClick={(event) => event.stopPropagation()} onSubmit={async (event) => {
+                event.preventDefault();
+                try {
+                  await api("/api/trading/order", { method: "POST", body: JSON.stringify({ symbol: "BTC", side: quickSide, type: "market", margin: "10", leverage: 2 }) });
+                  toast({ title: quickSide === "long" ? "Compra simulada enviada" : "Venta simulada enviada", tone: "ok" });
+                  setQuick(false);
+                  await refresh();
+                } catch (err) {
+                  toast({ title: "No se envió", body: err instanceof Error ? err.message : "", tone: "danger" });
+                }
+              }}>
+                <h2>Operar BTC al momento</h2>
+                <p className="fine">Orden simulada de mercado, margen 10, 2x. Solo si el precio es ejecutable.</p>
+                <div className="row">
+                  <button type="button" className={quickSide === "long" ? "btn btn-up" : "btn"} onClick={() => setQuickSide("long")}>▲ Largo</button>
+                  <button type="button" className={quickSide === "short" ? "btn btn-down" : "btn"} onClick={() => setQuickSide("short")}>▼ Corto</button>
+                </div>
+                <button className={quickSide === "long" ? "btn btn-up" : "btn btn-down"} type="submit">{quickSide === "long" ? "▲ Comprar simulado" : "▼ Vender simulado"}</button>
+                <button className="btn" type="button" onClick={() => setQuick(false)}>Cancelar</button>
+              </form>
+            </div>
+          ) : null}
+          {data && Number(data.settings?.tutorial_done) === 0 ? (
+            <div className="sheet-backdrop">
+              <div className="sheet" role="dialog" aria-labelledby="tutorial-title">
+                <h2 id="tutorial-title">Bienvenida a la simulación</h2>
+                <ol className="stack">
+                  <li>Los precios son de lectura. Ninguna orden sale al mercado.</li>
+                  <li>En Ronda votas sube o baja antes de que se fije la entrada.</li>
+                  <li>PIKAS AI solo habla si hay un motor configurado. Si no, lo dice.</li>
+                </ol>
+                <button className="btn btn-primary" type="button" onClick={async () => { await api("/api/prefs", { method: "POST", body: JSON.stringify({ tutorialDone: true }) }); await refresh(); }}>Entendido</button>
+              </div>
+            </div>
+          ) : null}
           {more ? (
             <div className="sheet-backdrop" onClick={() => setMore(false)}>
               <div className="sheet" onClick={(event) => event.stopPropagation()}>

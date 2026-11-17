@@ -8,12 +8,14 @@ import { useApp } from "./shell";
 import { celebrate, ScreenSkeleton, useToast } from "./ui";
 import { money, when } from "@/lib/format";
 import { ASSET_SYMBOLS } from "@/lib/symbols";
+import { AiMark, AssetMark } from "./marks";
 
 type Side = "up" | "down";
 
 interface Pick {
   id: string;
   actor_type: string;
+  actor_id?: string;
   display_name: string;
   side: string;
   rationale?: string | null;
@@ -112,7 +114,7 @@ export function RondaScreen() {
         <article className="card grid" key={ronda.id}>
           <div className="row"><h2>{ronda.label}</h2><span className="chip">{ronda.status}</span></div>
           <p className="fine">{ronda.symbol} · empieza {when(Number(ronda.starts_at))} · cierra {when(Number(ronda.ends_at))}</p>
-          <p>Entrada {ronda.entry_price ? money(ronda.entry_price) : "se fija al empezar"} · stop {ronda.stop_pct || "—"}% · objetivo {ronda.target_pct || "—"}% · fuente {ronda.source || "pendiente"}</p>
+          <p><AssetMark symbol={ronda.symbol} labelled /> · entrada {ronda.entry_price ? money(ronda.entry_price) : "se fija al empezar"} · stop {ronda.stop_pct || "—"}% · objetivo {ronda.target_pct || "—"}% · fuente {ronda.source || "pendiente"}</p>
           {ronda.status === "voting" ? (
             <div className="row">
               <button className="btn btn-up" type="button" onClick={() => vote(ronda.id, "up")}>▲ Sube</button>
@@ -127,7 +129,7 @@ export function RondaScreen() {
           <ul className="stack">
             {(ronda.picks || []).map((pick) => (
               <li key={pick.id}>
-                <strong>{pick.display_name}</strong> · {pick.actor_type} · {pick.side === "up" ? "sube" : "baja"}
+                <strong>{pick.actor_type === "ia" ? <AiMark id={pick.actor_id || pick.display_name} /> : null} {pick.display_name}</strong> · {pick.actor_type} · {pick.side === "up" ? "sube" : "baja"}
                 {pick.points != null ? ` · ${pick.points} pts (${pick.outcome})` : ""}
                 {pick.rationale ? <span className="fine"> — {pick.rationale}</span> : null}
               </li>
