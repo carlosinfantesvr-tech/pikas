@@ -119,18 +119,52 @@ export function RecoverScreen() {
   );
 }
 
+function Spark({ closes }: { closes: number[] }) {
+  const min = Math.min(...closes);
+  const max = Math.max(...closes);
+  const span = max - min || 1;
+  const d = closes.map((value, index) => {
+    const x = (index / Math.max(1, closes.length - 1)) * 100;
+    const y = 28 - ((value - min) / span) * 24;
+    return `${index === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+  return <svg className="spark" viewBox="0 0 100 32" aria-hidden><path d={d} fill="none" stroke="currentColor" strokeWidth="2" /></svg>;
+}
+
+function Countdown({ at, phase, label }: { at: number; phase: string; label: string }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const left = Math.max(0, at - now);
+  const hours = Math.floor(left / 3_600_000);
+  const minutes = Math.floor((left % 3_600_000) / 60_000);
+  const seconds = Math.floor((left % 60_000) / 1000);
+  const text = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  return <p>{phase === "live" ? `${label} cierra en` : `${label} empieza en`} <strong className="price">{text}</strong></p>;
+}
+
 export function DashboardScreen() {
-  const { data, loading } = useApp();
+  const { data, loading, refresh } = useApp();
+  const toast = useToast();
+  const [home, setHome] = useState<{ activity: Array<{ kind: string; text: string; at: number }>; sparks: Array<{ symbol: string; closes: number[] }>; next: { label: string; startsAt: number; phase: string } | null } | null>(null);
+  useEffect(() => {
+    api<NonNullable<typeof home>>("/api/home").then(setHome).catch(() => setHome({ activity: [], sparks: [], next: null }));
+  }, [data?.quotes]);
   if (loading || !data) return <div className="grid"><Skeleton className="sk-boot" /><Skeleton className="sk-boot" /></div>;
   const account = data.account;
   const pnl = account ? Number(account.equity) - Number(account.initialBalance) : null;
+  const favorites = new Set((data.settings?.favorites || "").split(",").filter(Boolean));
+  const ordered = [...data.quotes].sort((a, b) => Number(favorites.has(b.symbol)) - Number(favorites.has(a.symbol)));
   return (
-    <div className="grid">
+    <div className="grid stagger">
       <div>
-        <p className="kicker">Centro de operaciones</p>
+        <p className="kicker">En directo</p>
         <h1>Hola, {data.user.username}</h1>
         <p className="muted">Precios de lectura. Cuentas, órdenes y resultados son simulación.</p>
       </div>
+      {home?.next ? <section className="panel"><Countdown at={home.next.startsAt} phase={home.next.phase} label={home.next.label} /></section> : <p className="empty">No hay una sesión de ronda calculada.</p>}
       {account?.catchupNote ? <div className="panel status-bad" role="status">{account.catchupNote}</div> : null}
       {data.quotes.every((quote) => !quote.price) ? <p className="panel status-bad" role="alert">No hay precios reales ahora. No se muestran cifras inventadas.</p> : null}
       <div className="cards">
@@ -140,9 +174,19 @@ export function DashboardScreen() {
         <article className="card"><span className="kicker">Win rate</span><b>{account?.stats.winRate == null ? "—" : pct(account.stats.winRate * 100, 0)}</b><span className="fine">{account?.stats.trades || 0} cierres</span></article>
       </div>
       <div className="cards">
-        {data.quotes.map((quote) => (
+        {ordered.map((quote) => (
           <article className="card quote" key={quote.symbol}>
-            <header><strong>{quote.symbol}</strong><span className="fine">{quote.name}</span></header>
+            <header>
+              <strong>{quote.symbol}</strong>
+              <button className={favorites.has(quote.symbol) ? "btn btn-secondary" : "btn"} type="button" aria-pressed={favorites.has(quote.symbol)} onClick={async () => {
+                const next = new Set(favorites);
+                if (next.has(quote.symbol)) next.delete(quote.symbol); else next.add(quote.symbol);
+                await api("/api/prefs", { method: "POST", body: JSON.stringify({ favorites: [...next] }) });
+                toast({ title: next.has(quote.symbol) ? `${quote.symbol} en favoritos` : `${quote.symbol} fuera de favoritos`, tone: "ok" });
+                await refresh();
+              }}>{favorites.has(quote.symbol) ? "★ Favorito" : "☆ Seguir"}</button>
+            </header>
+            {home?.sparks.find((spark) => spark.symbol === quote.symbol) ? <Spark closes={home.sparks.find((spark) => spark.symbol === quote.symbol)!.closes} /> : null}
             {quote.price ? <div className="price"><PriceText value={quote.price} digits={quote.kind === "crypto" ? 2 : 2} /></div> : <strong>No disponible</strong>}
             <span className={Number(quote.changeValue) < 0 ? "down" : "up"}>{quote.changeValue == null ? "variación n/d" : `${pct(quote.changeValue)} · ${quote.changeBasis === "24h" ? "24 h" : quote.changeBasis === "day_open" ? "apertura" : "cierre previo"}`}</span>
             <span className="fine">{quote.source || "sin fuente"} · {quote.status} · {ago(quote.providerTs || quote.fetchedAt)}</span>
@@ -150,6 +194,14 @@ export function DashboardScreen() {
           </article>
         ))}
       </div>
+      <section className="panel">
+        <h2>Actividad real</h2>
+        {home && home.activity.length === 0 ? <p className="empty">Todavía no hay órdenes, votos ni rondas resueltas guardadas.</p> : null}
+        <ul className="stack">
+          {(home?.activity || []).map((item) => <li key={`${item.kind}-${item.at}`}>{item.text} <span className="fine">{ago(item.at)}</span></li>)}
+        </ul>
+        <p className="fine"><Link href="/progreso">Ver medallas y comparación con las IAs</Link> · <a href="/api/public/resultado.svg">Imagen del último resultado</a></p>
+      </section>
       <div className="quick">
         {[["Trading", "/trading"], ["Battle", "/battle"], ["Arena", "/arena"], ["Advisor", "/advisor"], ["PIKAS AI", "/pikas"]].map(([label, href]) => <Link className="card" key={href} href={href}>{label}</Link>)}
       </div>

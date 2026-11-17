@@ -114,6 +114,10 @@ export function SettingsScreen() {
   return (
     <div className="grid">
       <h1>Ajustes</h1>
+      <div className="row">
+        <button className="btn btn-secondary" type="button" onClick={async () => { await api("/api/prefs", { method: "POST", body: JSON.stringify({ theme: "dark" }) }); toast({ title: "Modo oscuro", tone: "ok" }); await refresh(); }}>Modo oscuro</button>
+        <button className="btn btn-primary" type="button" onClick={async () => { await api("/api/prefs", { method: "POST", body: JSON.stringify({ theme: "light" }) }); toast({ title: "Modo claro", tone: "ok" }); await refresh(); }}>Modo claro</button>
+      </div>
       <form className="panel grid" onSubmit={async (event) => {
         event.preventDefault();
         await api("/api/settings", { method: "POST", body: JSON.stringify({ reduceMotion: motion, alertMovePct: move, autonomousEnabled: false }) });

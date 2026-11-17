@@ -1,4 +1,4 @@
-import { MIGRATION_002, MIGRATION_003, SCHEMA } from "./schema";
+import { MIGRATION_002, MIGRATION_003, MIGRATION_004, SCHEMA } from "./schema";
 
 export interface Db {
   query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]>;
@@ -92,6 +92,10 @@ export async function migrate(db: Db): Promise<void> {
   if (!applied.has("003")) {
     for (const statement of MIGRATION_003) await db.exec(statement);
     await db.query("insert into schema_migrations (id, applied_at) values ($1, $2)", ["003", Date.now()]);
+  }
+  if (!applied.has("004")) {
+    for (const statement of MIGRATION_004) await db.exec(statement);
+    await db.query("insert into schema_migrations (id, applied_at) values ($1, $2)", ["004", Date.now()]);
   }
 }
 

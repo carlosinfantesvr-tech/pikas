@@ -21,6 +21,8 @@ import {
 import { buildGoogleAuthUrl, createPkce, exchangeGoogleCode, googleOAuthConfigured } from "@/lib/auth/google-policy";
 import { createBattle, listBattles, voteBattle } from "@/lib/battle";
 import { castPoll, castRondaVote, chainExport, createFreeCall, latestBrief, pollTally, readSentiment, rondaView, seasonBoard, verifyHash } from "@/lib/ronda";
+import { homePayload, iaBoard, parseFavorites, progressView } from "@/lib/home";
+import { ASSET_SYMBOLS } from "@/lib/symbols";
 import { getDb, logEvent } from "@/lib/db";
 import { loadCandles, listQuotes } from "@/lib/market";
 import { latestIndicators, computeIndicators, type Bar } from "@/engine/indicators";
@@ -116,6 +118,23 @@ async function handle(req: Request, slug: string[]): Promise<Response> {
       });
     }
     return json(chain);
+  }
+  if (path === "public/resultado.svg" && method === "GET") {
+    const rows = await db.query<{ label: string; resolution: string | null; symbol: string }>(
+      "select label, resolution, symbol from rondas where status = 'resolved' order by resolved_at desc limit 1",
+    );
+    const row = rows[0];
+    const title = row ? `${row.label}` : "Sin ronda resuelta";
+    const detail = row ? `${row.symbol} · ${row.resolution || "resuelta"}` : "Todavía no hay un resultado real que compartir.";
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#08090d"/>
+  <text x="80" y="180" fill="#f5b942" font-size="28" font-family="sans-serif">PIKAS · simulación</text>
+  <text x="80" y="280" fill="#e8edf5" font-size="64" font-family="sans-serif">${title.replace(/[<>&]/g, "")}</text>
+  <text x="80" y="360" fill="#93a0b4" font-size="32" font-family="sans-serif">${detail.replace(/[<>&]/g, "")}</text>
+  <text x="80" y="520" fill="#67e8f9" font-size="24" font-family="sans-serif">Sin dinero real. Fuente: rondas guardadas.</text>
+</svg>`;
+    return new NextResponse(svg, { headers: { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "no-store" } });
   }
   if (path === "public/verificar" && method === "GET") {
     const hash = new URL(req.url).searchParams.get("hash") || "";
@@ -237,6 +256,28 @@ async function handle(req: Request, slug: string[]): Promise<Response> {
 
   const user = await userFromToken(db, readCookie(req));
   if (!user) return fail("No autenticado", "UNAUTHENTICATED", 401);
+
+  if (path === "home" && method === "GET") {
+    const settings = await db.query<{ favorites: string | null }>("select favorites from user_settings where user_id = $1", [user.id]);
+    return json(await homePayload(db, user.id, parseFavorites(settings[0]?.favorites)));
+  }
+  if (path === "progreso" && method === "GET") return json(await progressView(db, user.id));
+  if (path === "ias" && method === "GET") return json({ providers: await iaBoard(db) });
+  if (path === "prefs" && method === "POST") {
+    if (!sameOrigin(req)) return fail("Origen no permitido.", "CSRF", 403);
+    const input = z.object({
+      theme: z.enum(["dark", "light"]).optional(),
+      favorites: z.array(z.string()).optional(),
+      tutorialDone: z.boolean().optional(),
+    }).safeParse(await req.json().catch(() => null));
+    if (!input.success) return fail("Preferencia no válida.", "BAD_INPUT", 400);
+    const favorites = input.data.favorites?.map((item) => item.toUpperCase()).filter((item) => ASSET_SYMBOLS.includes(item)).join(",") ;
+    await db.query("insert into user_settings (user_id) values ($1) on conflict (user_id) do nothing", [user.id]);
+    if (input.data.theme) await db.query("update user_settings set theme = $2 where user_id = $1", [user.id, input.data.theme]);
+    if (favorites != null) await db.query("update user_settings set favorites = $2 where user_id = $1", [user.id, favorites]);
+    if (input.data.tutorialDone != null) await db.query("update user_settings set tutorial_done = $2 where user_id = $1", [user.id, input.data.tutorialDone ? 1 : 0]);
+    return json({ ok: true });
+  }
 
   if (path === "bootstrap" && method === "GET") {
     const listed = await listQuotes(db);

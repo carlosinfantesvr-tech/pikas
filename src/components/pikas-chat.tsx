@@ -130,6 +130,11 @@ export function PikasChat({ compact = false }: { compact?: boolean }) {
         ))}
         {streaming ? <article className="bubble bubble-assistant streaming"><p>{streaming}<span className="caret" /></p></article> : null}
       </div>
+      <div className="row">
+        {["¿Cómo va mi simulación?", "Explícame la ronda unida", "¿Qué es el stop por volatilidad?"].map((prompt) => (
+          <button key={prompt} className="btn btn-secondary" type="button" disabled={busy} onClick={() => { setText(prompt); }}>{prompt}</button>
+        ))}
+      </div>
       <form
         className="composer"
         onSubmit={(event) => {
