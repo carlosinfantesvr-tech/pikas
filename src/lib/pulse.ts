@@ -3,6 +3,7 @@ import type { Db } from "./db";
 import { logEvent } from "./db";
 import { loadCandles, listQuotes, refreshMarket, type CandleDraft } from "./market";
 import { dueFreeSymbols, maybeDailyBrief, refreshSentiment, settleFree, tickRondas } from "./ronda";
+import { notifyResolvedRondas } from "./notify";
 import { catchUpAccount, type QuoteView } from "./trading";
 
 function asQuotes(rows: Awaited<ReturnType<typeof listQuotes>>): QuoteView[] {
@@ -108,6 +109,7 @@ export async function runPulse(db: Db, fetchImpl: typeof fetch = fetch, now = Da
       candles: candleCache.get(rondaSymbol) || [],
       symbol: rondaSymbol,
     });
+    await notifyResolvedRondas(db, now);
     for (const symbol of await dueFreeSymbols(db, now)) {
       if (!candleCache.has(symbol)) {
         const loaded = await loadCandles(db, symbol, "1m", fetchImpl);

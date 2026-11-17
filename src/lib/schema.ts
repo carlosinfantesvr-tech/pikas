@@ -97,6 +97,28 @@ export const MIGRATION_004: string[] = [
   `alter table user_settings add column if not exists tutorial_done integer not null default 0`,
 ];
 
+export const MIGRATION_005: string[] = [
+  `create table if not exists leagues (
+    id text primary key,
+    name text not null,
+    code_hash text not null unique,
+    owner_id text not null,
+    created_at bigint not null
+  )`,
+  `create table if not exists league_members (
+    league_id text not null,
+    user_id text not null,
+    joined_at bigint not null,
+    primary key (league_id, user_id)
+  )`,
+  `create table if not exists academy_passes (
+    user_id text not null,
+    lesson_id text not null,
+    passed_at bigint not null,
+    primary key (user_id, lesson_id)
+  )`,
+];
+
 export const MIGRATION_002: string[] = [
   `create table if not exists ai_provider_state (
     provider text primary key,

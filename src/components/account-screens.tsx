@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "./api";
 import { useApp } from "./shell";
@@ -8,6 +9,7 @@ import { AnimatedNumber, ScreenSkeleton, useToast } from "./ui";
 import { money, pct, signed, when } from "@/lib/format";
 import { ASSET_SYMBOLS } from "@/lib/symbols";
 import { AiMark, AssetMark } from "./marks";
+import { EmptyState } from "./ui";
 
 export function HistoryScreen() {
   const [trades, setTrades] = useState<Array<Record<string, unknown>> | null>(null);
@@ -65,7 +67,7 @@ export function AlertsScreen() {
   return (
     <div className="grid">
       <div className="row"><h1>Alertas</h1><button className="btn" type="button" onClick={async () => { await api("/api/notifications/read", { method: "POST" }); await refresh(); await load(); }}>Marcar leídas</button></div>
-      <p className="muted">Avisos dentro de la app. No hay push garantizado con el hosting gratuito.</p>
+      <p className="muted">Centro de avisos dentro de la app: logros, rondas resueltas y ligas. No hay push ni avisos de órdenes con la app cerrada.</p>
       <form className="panel row" onSubmit={async (event) => { event.preventDefault(); try { await api("/api/alerts", { method: "POST", body: JSON.stringify(form) }); setForm({ ...form, threshold: "" }); toast({ title: "Alerta creada", tone: "ok" }); await load(); } catch (err) { toast({ title: "No se creó", body: err instanceof Error ? err.message : "", tone: "danger" }); } }}>
         <select aria-label="Activo" value={form.symbol} onChange={(e) => setForm({ ...form, symbol: e.target.value })}>{(data?.quotes || []).map((q) => <option key={q.symbol}>{q.symbol}</option>)}</select>
         <select aria-label="Tipo de alerta" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}><option value="price_above">Precio por encima</option><option value="price_below">Precio por debajo</option><option value="move_pct">Movimiento %</option></select>
@@ -74,7 +76,7 @@ export function AlertsScreen() {
       </form>
       {items === null ? <ScreenSkeleton /> : null}
       {(items || []).map((alert) => <div className="card row" key={String(alert.id)}><span>{String(alert.symbol)} {String(alert.kind)} {String(alert.threshold)}</span><button className="btn" type="button" onClick={async () => { await api("/api/alerts/delete", { method: "POST", body: JSON.stringify({ id: alert.id }) }); toast({ title: "Alerta quitada" }); await load(); }}>Quitar</button></div>)}
-      {items && items.length === 0 ? <p className="empty">No tienes alertas de precio.</p> : null}
+      {items && items.length === 0 ? <EmptyState title="Sin alertas de precio" body="Crea una si quieres un aviso dentro de la app cuando un precio real cruce un umbral." /> : null}
       <h2>Bandeja</h2>
       {notes && notes.length === 0 ? <p className="empty">La bandeja está vacía.</p> : null}
       {(notes || []).map((note) => <article className="card" key={String(note.id)}><strong>{String(note.title)}</strong><p>{String(note.body)}</p><p className="fine">{when(Number(note.created_at))} · {String(note.category)} {note.read_at ? "" : "· nueva"}</p></article>)}
@@ -96,6 +98,7 @@ export function ProfileScreen() {
         <article className="card"><span className="kicker">Mejor</span><b>{account?.stats.best == null ? "—" : signed(account.stats.best)}</b></article>
         <article className="card"><span className="kicker">Peor</span><b>{account?.stats.worst == null ? "—" : signed(account.stats.worst)}</b></article>
       </div>
+      <p className="fine"><Link href={`/u/${data.user.username}`}>Ver perfil público</Link> · <a href={`/api/public/perfil.svg?username=${encodeURIComponent(data.user.username)}`}>Tarjeta</a></p>
       <button className="btn" type="button" onClick={async () => { await api("/api/auth/logout", { method: "POST" }); router.push("/login"); }}>Cerrar sesión</button>
     </div>
   );

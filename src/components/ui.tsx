@@ -91,6 +91,16 @@ export function celebrate() {
   window.setTimeout(() => root.remove(), 1500);
 }
 
+export function EmptyState({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="empty-art">
+      <div className="empty-mark" aria-hidden>♠</div>
+      <h2>{title}</h2>
+      <p>{body}</p>
+    </div>
+  );
+}
+
 export function ScreenSkeleton() {
   return (
     <div className="grid" aria-busy="true" aria-label="Cargando">
